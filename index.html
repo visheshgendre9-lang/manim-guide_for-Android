@@ -25,7 +25,9 @@
 
   body {
     background: var(--bg-gradient);
+    background-size: 180% 180%;
     background-attachment: fixed;
+    animation: gradientDrift 18s ease-in-out infinite;
     color: var(--text);
     font-family: 'Inter', sans-serif;
     font-size: 16px;
@@ -35,6 +37,21 @@
     padding: 40px 20px 80px;
     min-height: 100vh;
     overflow-x: hidden;
+  }
+
+  @keyframes gradientDrift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 999;
+    transition: width 0.1s ease-out;
   }
 
   /* Liquid Glass Animations */
@@ -49,8 +66,38 @@
     100% { transform: translateY(0px); }
   }
 
+  @keyframes orbitSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .hero-float-anim svg {
+    transform-origin: 13px 13px;
+    animation: orbitSpin 3s linear infinite;
+  }
+
   .animate-fade-in {
-    animation: fadeInUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .animate-fade-in.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-soft {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-soft.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hero-title-anim {
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
   }
 
   /* Glassmorphism Effect */
@@ -74,7 +121,7 @@
     padding: 60px 40px;
     margin-bottom: 48px;
     text-align: center;
-    animation: fadeInUp 0.6s ease-out;
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
   .hero-tag {
@@ -209,61 +256,6 @@
   .str { color: #059669; }
   .kw { color: #7c3aed; }
   .num-lit { color: #d97706; }
-
-  /* Password gate */
-  #lock-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-  }
-  #lock-box {
-    padding: 40px 36px;
-    max-width: 360px;
-    width: 100%;
-    text-align: center;
-  }
-  #lock-box h2 {
-    display: block;
-    font-size: 1.4rem;
-    margin-bottom: 8px;
-    color: var(--text);
-  }
-  #lock-box p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
-  #lock-input {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: 1px solid var(--glass-border);
-    background: rgba(255,255,255,0.6);
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    color: var(--text);
-    margin-bottom: 16px;
-    outline: none;
-  }
-  #lock-input:focus { border-color: var(--accent); }
-  #lock-btn {
-    width: 100%;
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: none;
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  #lock-btn:hover { background: var(--accent2); }
-  #lock-error {
-    color: #dc2626;
-    font-size: 13px;
-    margin-top: 12px;
-    min-height: 18px;
-  }
-  #site-content { display: none; }
 
   /* Copy button */
   .copy-btn {
@@ -417,39 +409,183 @@
   }
 </style>
 </head>
-<body class="animate-fade-in">
+<body>
 
-<!-- ============================================================
-     PASSWORD GATE
-     Set your password on the line below (replace PUT_YOUR_PASSWORD_HERE).
-     This is simple client-side protection only — anyone who views the
-     page source can find the password. It keeps out casual visitors,
-     not a determined one, so don't use it for anything truly sensitive.
-     ============================================================ -->
-<script>
-  const SITE_PASSWORD = "915684";
-</script>
+<div id="lock-screen" style="position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; overflow:hidden; background:linear-gradient(135deg,#dceefc,#eaf6ff 40%,#d7ecfb);">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
 
-<div id="lock-screen">
-  <div id="lock-box" class="glass">
-    <h2>🔒 Enter Password</h2>
-    <p>This page is protected. Enter the password to continue.</p>
-    <input type="password" id="lock-input" placeholder="Password" autocomplete="off">
-    <button id="lock-btn" onclick="checkPassword()">Enter</button>
-    <div id="lock-error"></div>
+  <div class="glass-card">
+    <div class="lock-icon-wrap">
+      <div class="lock-icon">&#128274;</div>
+    </div>
+    <div class="glass-title">Enter Password</div>
+    <div class="glass-sub">This page is protected. Enter the password<br>to continue.</div>
+    <input id="lock-input" type="password" placeholder="Password" autocomplete="off" class="glass-input">
+    <div id="lock-error" class="glass-error"></div>
+    <button id="lock-submit" class="glass-btn">Enter</button>
   </div>
 </div>
 
-<div id="site-content">
+<style>
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter: blur(50px);
+    opacity:0.55;
+    animation: lock-drift 14s ease-in-out infinite;
+  }
+  .blob.b1{
+    width:340px; height:340px;
+    background: radial-gradient(circle at 30% 30%, #a7d8ff, #6fb8f2);
+    top:-80px; left:-80px;
+    animation-duration: 16s;
+  }
+  .blob.b2{
+    width:280px; height:280px;
+    background: radial-gradient(circle at 60% 40%, #cdeaff, #7fc4f5);
+    bottom:-100px; right:-60px;
+    animation-duration: 19s;
+    animation-delay: -4s;
+  }
+  .blob.b3{
+    width:220px; height:220px;
+    background: radial-gradient(circle at 50% 50%, #e3f4ff, #9dd4fb);
+    bottom:20%; left:8%;
+    animation-duration: 13s;
+    animation-delay: -8s;
+  }
+  @keyframes lock-drift{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    33%{ transform: translate(30px,-20px) scale(1.08); }
+    66%{ transform: translate(-20px,25px) scale(0.95); }
+  }
+
+  .glass-card{
+    position:relative;
+    z-index:2;
+    width:100%; max-width:380px;
+    padding:40px 32px 34px;
+    text-align:center;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border-radius:26px;
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:
+      0 8px 32px rgba(70,130,190,0.18),
+      inset 0 1px 1px rgba(255,255,255,0.8);
+    animation: lock-card-in .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes lock-card-in{
+    from{ opacity:0; transform: translateY(16px) scale(0.97); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .lock-icon-wrap{
+    width:56px; height:56px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background: linear-gradient(145deg, rgba(255,255,255,0.85), rgba(184,224,255,0.55));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 14px rgba(90,160,220,0.35), inset 0 1px 1px rgba(255,255,255,0.9);
+    animation: lock-float 3.5s ease-in-out infinite;
+  }
+  @keyframes lock-float{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-5px); }
+  }
+  .lock-icon{ font-size:24px; }
+
+  .glass-title{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:22px;
+    font-weight:700;
+    color:#1a3a52;
+    margin-bottom:10px;
+    letter-spacing:-0.01em;
+  }
+  .glass-sub{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:14.5px;
+    color:#4a6b85;
+    line-height:1.55;
+    margin-bottom:24px;
+  }
+  .glass-input{
+    width:100%; box-sizing:border-box;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:15px;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(6px);
+    color:#1a3a52;
+    outline:none;
+    margin-bottom:14px;
+    transition: box-shadow .2s ease, background .2s ease;
+  }
+  .glass-input::placeholder{ color:#7ba0bd; }
+  .glass-input:focus{
+    background: rgba(255,255,255,0.65);
+    box-shadow: 0 0 0 3px rgba(111,184,242,0.35);
+  }
+  .glass-error{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:12.5px;
+    color:#c0392b;
+    margin:-6px 0 10px;
+    min-height:16px;
+  }
+  .glass-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background: linear-gradient(135deg,#5aa9f0,#3d82d1);
+    color:#fff;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow: 0 6px 18px rgba(61,130,209,0.4), inset 0 1px 1px rgba(255,255,255,0.4);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .glass-btn:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(61,130,209,0.5), inset 0 1px 1px rgba(255,255,255,0.5);
+  }
+  .glass-btn:active{
+    transform: translateY(0px) scale(0.98);
+  }
+  @keyframes lock-shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(8px); }
+    60%{ transform: translateX(-5px); }
+    80%{ transform: translateX(5px); }
+  }
+</style>
+
+<div id="main-content" style="display:none;">
+<div class="scroll-progress" id="scrollProgress"></div>
 
 <div class="hero glass">
   <div class="hero-tag">Complete Setup Guide</div>
-  <h1 class="animate-fade-in">Manim on Android</h1>
+  <h1 class="hero-title-anim">Manim on Android</h1>
   <p>Run the Mathematical Animation Engine fully offline on your Android tablet — no PC required.</p>
-  <div class="device-badge">📱 Tested target: Redmi Pad Pro 5G</div>
+  <div class="device-badge hero-float-anim" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 26 26" style="display:block;">
+      <circle cx="13" cy="13" r="10" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.35"/>
+      <circle class="orbit-dot" cx="13" cy="3" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <span>Animating with Manim</span>
+  </div>
 </div>
 
-<nav class="toc glass" id="top">
+<nav class="toc glass reveal-soft" id="top">
   <div class="toc-title">Contents</div>
   <ol>
     <li><a href="#manual">Manual Installation</a></li>
@@ -571,7 +707,7 @@
   <p>Then open VLC → Downloads → tap the file.</p>
 
   <h3 class="animate-fade-in">Common Errors</h3>
-  <table class="error-table glass">
+  <table class="error-table glass reveal-soft">
     <thead>
       <tr><th>Error</th><th>Fix</th></tr>
     </thead>
@@ -593,7 +729,7 @@
   <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">02</span> One-Line Installation</h2>
   <p>Paste a single command into Termux. It will automatically show you the disk space required before installing anything, then set up everything — proot-distro, Ubuntu, Python, FFmpeg, LaTeX, Cairo, and Manim — in one go.</p>
 
-  <div class="space-badge glass">
+  <div class="space-badge glass reveal-soft">
     <span class="icon">💾</span>
     <div class="details">
       <span class="label">Total Disk Space Required</span>
@@ -602,17 +738,17 @@
     </div>
   </div>
 
-  <div class="note warn glass">
+  <div class="note warn glass reveal-soft">
     <span class="note-icon">⚠️</span>
     <div>Make sure you have at least <strong style="color:var(--text)">4 GB free</strong> on your tablet before running this. Also keep your screen on and Termux in the foreground the entire time — it takes 10–20 minutes.</div>
   </div>
 
-  <div class="note info glass">
+  <div class="note info glass reveal-soft">
     <span class="note-icon">ℹ️</span>
     <div>The script will print the space breakdown and ask you to confirm before it starts downloading anything. Type <strong style="color:var(--text)">y</strong> and press Enter to proceed.</div>
   </div>
 
-  <div class="oneliner-wrap glass">
+  <div class="oneliner-wrap glass reveal-soft">
     <div class="code-block glass">
         <div class="code-label">
         <span>Termux</span>
@@ -651,7 +787,7 @@ echo "   Then: manim --version"
     </div>
   </div>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">✅</span>
     <div>When it finishes, you'll see <strong style="color:var(--text)">"Manim installed successfully!"</strong> with instructions on how to start. Every future session just needs: <code>proot-distro login ubuntu</code> → <code>cd ~/manim-projects && source manim-env/bin/activate</code>.</div>
   </div>
@@ -673,7 +809,7 @@ echo "   Then: manim --version"
   <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">03</span> Making an Animation (Every Time)</h2>
   <p>Follow these steps every time you open Termux and want to create or render an animation.</p>
 
-  <div class="note glass">
+  <div class="note glass reveal-soft">
     <div>⚡ <strong style="color:var(--text)">Quick copy-paste:</strong> run this one block to login, go to your project folder, and activate Manim — all in one go. Then jump straight to Step 3 to create your file.</div>
   </div>
   <div class="code-block glass">
@@ -756,7 +892,7 @@ echo "   Then: manim --version"
 
   <p>When done writing, save and exit nano: press <code>Ctrl+X</code> → <code>Y</code> → <code>Enter</code>.</p>
 
-  <div class="note info glass">
+  <div class="note info glass reveal-soft">
     <span class="note-icon">ℹ️</span>
     <div>
       <strong style="color:var(--text)">Common things you can use:</strong><br>
@@ -790,7 +926,7 @@ echo "   Then: manim --version"
 <span class="cmd">manim -qk my_animation.py MyScene</span></pre>
   </div>
 
-  <div class="note warn glass">
+  <div class="note warn glass reveal-soft">
     <span class="note-icon">⚠️</span>
     <div>Replace <code>MyScene</code> with whatever you named your class. In the example above it's <code>MyScene</code>. It must match exactly.</div>
   </div>
@@ -812,7 +948,7 @@ echo "   Then: manim --version"
   <h3 class="animate-fade-in">Step 6 — Making Another Animation</h3>
   <p>Just repeat from Step 3. Create a new <code>.py</code> file with a new class name, or add a new class to the same file and render it by name.</p>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">🚀</span>
     <div>
       <strong style="color:var(--text)">Quick session summary every time:</strong><br>
@@ -946,7 +1082,7 @@ disable_caching = False
   </div>
 
   <h3 class="animate-fade-in">All Settings at a Glance</h3>
-  <table class="error-table glass">
+  <table class="error-table glass reveal-soft">
     <thead>
       <tr><th>Setting</th><th>What it does</th><th>Default</th></tr>
     </thead>
@@ -966,7 +1102,7 @@ disable_caching = False
     </tbody>
   </table>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">💡</span>
     <div>For your tablet, the best balance is <strong style="color:var(--text)">720p at 30fps</strong> — good quality without being too slow to render. Use <code>manim -qm file.py Scene</code> or set <code>quality = medium_quality</code> in your config.</div>
   </div>
@@ -978,7 +1114,7 @@ disable_caching = False
   <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">04</span> Live Preview with Termux:X11</h2>
   <p>Instead of rendering a video file and opening it in VLC, Termux:X11 lets you watch the animation play live on your screen as Manim renders it — just like a real desktop computer.</p>
 
-  <div class="note info glass">
+  <div class="note info glass reveal-soft">
     <span class="note-icon">ℹ️</span>
     <div>Make sure you already have the <strong style="color:var(--text)">Termux:X11 APK</strong> installed on your tablet before starting. Download <code>app-arm64-v8a-debug.apk</code> from github.com/termux/termux-x11/releases</div>
   </div>
@@ -1026,7 +1162,7 @@ disable_caching = False
   </div>
   <p>Now switch to the <strong style="color:var(--text)">Termux:X11 app</strong> — you should see the XFCE desktop appear. Switch back to Termux to continue.</p>
 
-  <div class="note warn glass">
+  <div class="note warn glass reveal-soft">
     <span class="note-icon">⚠️</span>
     <div>If you see a <strong style="color:var(--text)">black screen with only a cursor</strong>, go back to Ubuntu and add the <code>-legacy-drawing</code> flag:<br>
     <code>termux-x11 :1 -legacy-drawing -xstartup "dbus-launch --exit-with-session xfce4-session" &</code></div>
@@ -1062,7 +1198,7 @@ disable_caching = False
     <pre><span class="cmd">pkill -f termux-x11</span></pre>
   </div>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">🖥️</span>
     <div>
       <strong style="color:var(--text)">X11 session summary every time:</strong><br>
@@ -1108,7 +1244,7 @@ disable_caching = False
     <li><code>self.wait(n)</code> — pauses for <code>n</code> seconds. Without this at the end, the video cuts off instantly.</li>
   </ul>
 
-  <div class="note info glass">
+  <div class="note info glass reveal-soft">
     <span class="note-icon">ℹ️</span>
     <div>Render this with <code>manim -ql filename.py MyScene</code> — the class name at the end must match exactly (case-sensitive).</div>
   </div>
@@ -1251,6 +1387,103 @@ half_mix = interpolate_color(RED, YELLOW, <span class="num-lit">0.5</span>)  <sp
 
   <hr class="divider" style="margin: 50px 0;">
 
+  <h3 class="animate-fade-in">Color Library — Every Built-in Color Name</h3>
+  <p>The full list of built-in color constants, grouped by family. Every color below has 5 shade levels — add <code>_A</code> (lightest) through <code>_E</code> (darkest) to the name, e.g. <code>PURPLE_A</code>, <code>PURPLE_E</code>. Using the plain name (no suffix) gives you the default middle shade (same as <code>_C</code>).</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — reds, pinks, maroons
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Red family</span>
+RED_A, RED_B, RED_C, RED_D, RED_E, RED   <span class="comment"># RED = RED_C</span>
+
+<span class="comment"># Maroon family (deep red)</span>
+MAROON_A, MAROON_B, MAROON_C, MAROON_D, MAROON_E, MAROON
+
+<span class="comment"># Pink family</span>
+PINK, LIGHT_PINK</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — oranges, yellows, golds
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Orange family</span>
+ORANGE, LIGHT_BROWN, DARK_BROWN
+
+<span class="comment"># Yellow family</span>
+YELLOW_A, YELLOW_B, YELLOW_C, YELLOW_D, YELLOW_E, YELLOW
+
+<span class="comment"># Gold family</span>
+GOLD_A, GOLD_B, GOLD_C, GOLD_D, GOLD_E, GOLD</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — greens &amp; teals
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Green family</span>
+GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E, GREEN
+
+<span class="comment"># Teal family</span>
+TEAL_A, TEAL_B, TEAL_C, TEAL_D, TEAL_E, TEAL</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — blues &amp; purples
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Blue family</span>
+BLUE_A, BLUE_B, BLUE_C, BLUE_D, BLUE_E, BLUE
+
+<span class="comment"># Light blue / sky blue</span>
+LIGHT_BLUE
+
+<span class="comment"># Purple family</span>
+PURPLE_A, PURPLE_B, PURPLE_C, PURPLE_D, PURPLE_E, PURPLE</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — grays, black, white
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Gray family (also spelled GREY_*, both work)</span>
+GRAY_A, GRAY_B, GRAY_C, GRAY_D, GRAY_E, GRAY
+
+<span class="comment"># Pure black &amp; white</span>
+WHITE, BLACK
+
+<span class="comment"># Transparent (useful for hiding fill while keeping outline)</span>
+Circle(fill_color=BLUE, fill_opacity=<span class="num-lit">0</span>)   <span class="comment"># fill_opacity=0 = invisible fill</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — how to use any of these
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># As the outline/stroke color</span>
+circle = Circle(color=BLUE_D)
+
+<span class="comment"># As the fill color (needs fill_opacity too)</span>
+square = Square(fill_color=PURPLE_A, fill_opacity=<span class="num-lit">1</span>)
+
+<span class="comment"># For text</span>
+text = Text(<span class="str">"Hello"</span>, color=TEAL_E)
+
+<span class="comment"># For a MathTex formula</span>
+formula = MathTex(<span class="str">r"E = mc^2"</span>, color=GOLD_D)
+
+<span class="comment"># Changing color later with animation</span>
+self.play(circle.animate.set_color(MAROON_C))</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Full family list at a glance: <code>RED, MAROON, PINK, ORANGE, YELLOW, GOLD, GREEN, TEAL, BLUE, LIGHT_BLUE, PURPLE, GRAY/GREY, WHITE, BLACK</code>. Most support <code>_A</code>–<code>_E</code> shades. You can always fall back to a custom hex string like <code>"#ff6b9d"</code> for any color not in this list — see the custom hex block above.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
   <h3 class="animate-fade-in">Text — Writing & Coloring It</h3>
   <div class="code-block glass">
     <div class="code-label"><span>Python</span> — text basics
@@ -1278,6 +1511,143 @@ self.play(text.animate.set_color(RED))
 <span class="comment"># Bold / italic (Text uses standard args)</span>
 bold_text = Text(<span class="str">"Bold"</span>, weight=BOLD)
 italic_text = Text(<span class="str">"Italic"</span>, slant=ITALIC)</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Math Symbols &amp; Formulas — Integrals, Summation, Limits, Derivatives, nCr</h3>
+  <p>All of these go inside <code>MathTex(r"...")</code> — the <code>r</code> before the quotes matters (raw string, so backslashes work). This is plain LaTeX math syntax. Write the whole formula as one string, or split it into multiple pieces inside <code>{ }</code> so you can color or animate parts separately.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — nCr, nPr, and factorials
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># nCr — combinations, "n choose r"</span>
+ncr = MathTex(<span class="str">r"^{n}C_{r} = \frac{n!}{r!(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(ncr))
+
+<span class="comment"># nCr — binomial coefficient notation (the big round-bracket style)</span>
+ncr_binom = MathTex(<span class="str">r"\binom{n}{r} = \frac{n!}{r!(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># nPr — permutations</span>
+npr = MathTex(<span class="str">r"^{n}P_{r} = \frac{n!}{(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Factorial</span>
+factorial = MathTex(<span class="str">r"n!"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — integration sign (indefinite &amp; definite)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Indefinite integral — plain integral sign</span>
+integral = MathTex(<span class="str">r"\int x^2 \, dx"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(integral))
+
+<span class="comment"># Definite integral — limits go in _{lower}^{upper} right after \int</span>
+definite_integral = MathTex(<span class="str">r"\int_{0}^{1} x^2 \, dx = \frac{1}{3}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(definite_integral))
+
+<span class="comment"># Double integral</span>
+double_integral = MathTex(<span class="str">r"\iint_{D} f(x,y) \, dA"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Triple integral</span>
+triple_integral = MathTex(<span class="str">r"\iiint_{V} f(x,y,z) \, dV"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Closed line/surface integral (loop through the sign)</span>
+closed_integral = MathTex(<span class="str">r"\oint_{C} \vec{F} \cdot d\vec{r}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — summation sign (with limits)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Summation — \sum, limits again go in _{lower}^{upper}</span>
+summation = MathTex(<span class="str">r"\sum_{i=1}^{n} i = \frac{n(n+1)}{2}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(summation))
+
+<span class="comment"># Summation to infinity</span>
+infinite_sum = MathTex(<span class="str">r"\sum_{n=0}^{\infty} \frac{1}{n!} = e"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Product sign (big pi) — same limit syntax as summation</span>
+product = MathTex(<span class="str">r"\prod_{i=1}^{n} i = n!"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — limit sign
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Limit — \lim with the approach value under it via \to</span>
+limit = MathTex(<span class="str">r"\lim_{x \to 0} \frac{\sin x}{x} = 1"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(limit))
+
+<span class="comment"># Limit going to infinity</span>
+limit_inf = MathTex(<span class="str">r"\lim_{x \to \infty} \frac{1}{x} = 0"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># One-sided limits — add ^+ or ^- to the approach value</span>
+limit_right = MathTex(<span class="str">r"\lim_{x \to 0^{+}} f(x)"</span>, font_size=<span class="num-lit">60</span>)
+limit_left = MathTex(<span class="str">r"\lim_{x \to 0^{-}} f(x)"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — derivatives (regular, partial, higher order)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Derivative — Leibniz notation (d/dx form)</span>
+derivative = MathTex(<span class="str">r"\frac{d}{dx} x^2 = 2x"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(derivative))
+
+<span class="comment"># Derivative of a function y — dy/dx</span>
+dy_dx = MathTex(<span class="str">r"\frac{dy}{dx}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Prime notation — f'(x), f''(x)</span>
+prime = MathTex(<span class="str">r"f'(x) = 2x \quad f''(x) = 2"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Second derivative — Leibniz form</span>
+second_derivative = MathTex(<span class="str">r"\frac{d^2y}{dx^2}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Partial derivative — use \partial instead of d</span>
+partial_derivative = MathTex(<span class="str">r"\frac{\partial f}{\partial x}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — other common symbols &amp; formulas
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Square root / nth root</span>
+sqrt = MathTex(<span class="str">r"\sqrt{x}"</span>, font_size=<span class="num-lit">60</span>)
+nth_root = MathTex(<span class="str">r"\sqrt[n]{x}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Fractions</span>
+fraction = MathTex(<span class="str">r"\frac{a}{b}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Greek letters — just backslash + name</span>
+greek = MathTex(<span class="str">r"\alpha \beta \gamma \theta \pi \sigma \Delta \Sigma \Omega"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Infinity, plus-minus, not-equal, approx</span>
+symbols = MathTex(<span class="str">r"\infty \quad \pm \quad \neq \quad \approx"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Inequalities</span>
+inequalities = MathTex(<span class="str">r"\leq \quad \geq \quad \ll \quad \gg"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Vectors — arrow on top</span>
+vector = MathTex(<span class="str">r"\vec{F} = m\vec{a}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Set membership / subset</span>
+sets = MathTex(<span class="str">r"x \in \mathbb{R} \quad A \subset B"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Matrix (2x2 example)</span>
+matrix = MathTex(<span class="str">r"\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Pattern for limits everywhere in LaTeX: the symbol comes first (<code>\int</code>, <code>\sum</code>, <code>\prod</code>, <code>\lim</code>), then <code>_{ }</code> for the lower/starting value, then <code>^{ }</code> for the upper value (integrals and sums use both; <code>\lim</code> only uses <code>_{ }</code> with <code>\to</code> inside it). <code>\,</code> just adds a small space (used before <code>dx</code>). Always wrap the whole thing in a raw string: <code>MathTex(r"...")</code>.</div>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>These formulas need a full LaTeX install to render (see Manual Installation above, <code>texlive-latex-extra</code>). If a symbol doesn't show up or you get a "latex not found" / compile error, check the Troubleshooting table further up this guide.</div>
   </div>
 
   <hr class="divider" style="margin: 50px 0;">
@@ -1354,9 +1724,216 @@ self.play(shape.animate.to_edge(UP))
 self.play(shape.animate.shift(RIGHT * <span class="num-lit">2</span>))</pre>
   </div>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">🧭</span>
     <div><strong style="color:var(--text)">Direction cheat sheet:</strong> <code>UP</code>, <code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code> are built in. Combine them for diagonals: <code>UP+LEFT</code> = top-left, <code>DOWN+RIGHT</code> = bottom-right, etc.</div>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — worked example: move a title from center to top
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Create text in the center (default position) and show it</span>
+text1 = Text(<span class="str">"Integral"</span>)
+self.play(Create(text1))
+self.wait(<span class="num-lit">1</span>)
+
+<span class="comment"># Animate that same text sliding up to the top-center edge</span>
+self.play(text1.animate.to_edge(UP))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">.shift() — Full Guide (What It Is, When to Use It)</h3>
+  <p><code>.shift()</code> moves an object <strong>relative to where it already is</strong> — it adds an offset to the current position. This is different from <code>.move_to()</code>, which sends the object to an exact, absolute coordinate no matter where it started. Use <code>.shift()</code> whenever you're thinking "move it a bit more from here," and use <code>.move_to()</code> when you're thinking "put it exactly at this spot."</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — basic shift directions
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># The four basic directions — each is a unit vector you scale with *</span>
+shape.shift(UP)                 <span class="comment"># up by 1 unit (default)</span>
+shape.shift(UP * <span class="num-lit">2</span>)             <span class="comment"># up by 2 units</span>
+shape.shift(DOWN * <span class="num-lit">1.5</span>)         <span class="comment"># down by 1.5 units</span>
+shape.shift(LEFT * <span class="num-lit">3</span>)           <span class="comment"># left by 3 units</span>
+shape.shift(RIGHT * <span class="num-lit">0.5</span>)        <span class="comment"># right by half a unit</span>
+
+<span class="comment"># Negative numbers flip the direction (same as the opposite constant)</span>
+shape.shift(UP * -<span class="num-lit">2</span>)            <span class="comment"># same as shift(DOWN * 2)</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — diagonal &amp; combined shifts
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Add two directions together for a diagonal move</span>
+shape.shift(RIGHT + UP)              <span class="comment"># diagonally up-right by 1 unit each</span>
+shape.shift(RIGHT * <span class="num-lit">2</span> + UP * <span class="num-lit">1</span>)      <span class="comment"># further right than up</span>
+shape.shift(LEFT * <span class="num-lit">2</span> + DOWN * <span class="num-lit">2</span>)    <span class="comment"># diagonally down-left</span>
+
+<span class="comment"># Shift using a raw [x, y, z] vector instead of UP/DOWN/etc.</span>
+shape.shift([<span class="num-lit">1.5</span>, -<span class="num-lit">0.5</span>, <span class="num-lit">0</span>])       <span class="comment"># right 1.5, down 0.5</span>
+
+<span class="comment"># Shift along the z-axis (only matters in 3D scenes)</span>
+shape.shift(OUT * <span class="num-lit">2</span>)            <span class="comment"># toward the camera</span>
+shape.shift(IN * <span class="num-lit">2</span>)             <span class="comment"># away from the camera</span>
+
+<span class="comment"># Chaining shifts — each one stacks on top of the last</span>
+shape.shift(RIGHT * <span class="num-lit">2</span>).shift(UP * <span class="num-lit">1</span>)   <span class="comment"># same result as shift(RIGHT*2 + UP*1)</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — animating a shift (not just an instant jump)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Instant jump (no animation) — happens immediately, before self.play</span>
+shape.shift(UP * <span class="num-lit">2</span>)
+
+<span class="comment"># Animated — wrap with .animate and pass to self.play</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">2</span>))
+
+<span class="comment"># Control how long the animation takes</span>
+self.play(shape.animate.shift(RIGHT * <span class="num-lit">3</span>), run_time=<span class="num-lit">2</span>)
+
+<span class="comment"># Shift several objects at once in the same animation</span>
+self.play(
+    circle.animate.shift(LEFT * <span class="num-lit">2</span>),
+    square.animate.shift(RIGHT * <span class="num-lit">2</span>)
+)
+
+<span class="comment"># Shift, then shift again — two separate animation beats</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">1</span>))
+self.wait(<span class="num-lit">0.5</span>)
+self.play(shape.animate.shift(RIGHT * <span class="num-lit">1</span>))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — common real uses of shift
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Nudge a label off of the shape it's labeling</span>
+label = Text(<span class="str">"radius"</span>).shift(UP * <span class="num-lit">0.5</span>)
+
+<span class="comment"># Slide an object off screen (to make room / clear the scene)</span>
+self.play(shape.animate.shift(LEFT * <span class="num-lit">8</span>))   <span class="comment"># moves off the left edge</span>
+
+<span class="comment"># Make a copy and shift only the copy (keeps the original in place)</span>
+shape_copy = shape.copy().shift(RIGHT * <span class="num-lit">3</span>)
+self.play(Create(shape_copy))
+
+<span class="comment"># Shift a whole group of objects together</span>
+group = VGroup(circle, square, triangle)
+self.play(group.animate.shift(DOWN * <span class="num-lit">1</span>))
+
+<span class="comment"># Small correction after positioning (fine-tune placement)</span>
+label.next_to(circle, UP)
+label.shift(RIGHT * <span class="num-lit">0.2</span>)   <span class="comment"># nudge it slightly right</span></pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div><strong style="color:var(--text)">shift() vs move_to() vs to_edge():</strong> <code>.shift(v)</code> = "move <em>by</em> this much from where I am now" (relative). <code>.move_to(point)</code> = "go <em>to</em> this exact coordinate" (absolute — ignores current position). <code>.to_edge(direction)</code> / <code>.to_corner(direction)</code> = "snap to this edge/corner of the screen" (also absolute). If you call <code>.shift()</code> twice, the offsets add up; if you call <code>.move_to()</code> twice, only the last call matters.</div>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>1 unit in Manim is not 1 pixel — by default the visible frame is about 14.2 units wide and 8 units tall. So <code>shift(RIGHT * 8)</code> is roughly enough to push something off the right edge of a normal frame.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Matrices — As a Real Object on Screen</h3>
+  <p>Use <code>Matrix()</code> when you want a matrix as its own object you can move, transform, or animate entry-by-entry (not just static LaTeX text). It takes a plain Python list of lists.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — Matrix object
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Basic matrix — pass a list of rows</span>
+matrix = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">2</span>], [<span class="num-lit">3</span>, <span class="num-lit">4</span>]])
+self.play(Create(matrix))
+
+<span class="comment"># Matrix with brackets style (round, square, curly)</span>
+round_matrix = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">0</span>], [<span class="num-lit">0</span>, <span class="num-lit">1</span>]], left_bracket=<span class="str">"("</span>, right_bracket=<span class="str">")"</span>)
+
+<span class="comment"># 3x3 matrix</span>
+matrix3 = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">2</span>, <span class="num-lit">3</span>], [<span class="num-lit">4</span>, <span class="num-lit">5</span>, <span class="num-lit">6</span>], [<span class="num-lit">7</span>, <span class="num-lit">8</span>, <span class="num-lit">9</span>]])
+
+<span class="comment"># Color a single entry — get_entries() returns them in reading order</span>
+matrix.get_entries()[<span class="num-lit">0</span>].set_color(YELLOW)   <span class="comment"># colors the "1"</span>
+
+<span class="comment"># Add brackets/rows highlight, or write it in with animation</span>
+self.play(Write(matrix))
+
+<span class="comment"># Matrix multiplication equation — mixing Matrix() with MathTex</span>
+eq = MathTex(<span class="str">r"\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}"</span>
+             <span class="str">r"\begin{bmatrix} x \\ y \end{bmatrix} ="</span>
+             <span class="str">r"\begin{bmatrix} ax+by \\ cx+dy \end{bmatrix}"</span>, font_size=<span class="num-lit">48</span>)
+self.play(Write(eq))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">2D Graphs — Axes, Plotting Functions, log(x)</h3>
+  <p><code>Axes()</code> creates an x-y coordinate grid you can plot any function on with <code>axes.plot(...)</code>. This is the standard way to draw a graph — including <code>log(x)</code>, trig functions, or anything else you can write as a Python <code>lambda</code>.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — axes and plotting a function
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">class</span> <span class="cmd">GraphScene</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        <span class="comment"># Build the axes first — set ranges to fit your function</span>
+        axes = Axes(
+            x_range=[-<span class="num-lit">1</span>, <span class="num-lit">10</span>, <span class="num-lit">1</span>],
+            y_range=[-<span class="num-lit">3</span>, <span class="num-lit">3</span>, <span class="num-lit">1</span>],
+            axis_config={<span class="str">"color"</span>: WHITE},
+            tips=<span class="kw">True</span>
+        )
+        <span class="comment"># Optional numeric labels on the axes</span>
+        labels = axes.get_axis_labels(x_label=<span class="str">"x"</span>, y_label=<span class="str">"y"</span>)
+        self.play(Create(axes), Write(labels))
+
+        <span class="comment"># Plot log(x) — use x_range on the plot to avoid log(0)</span>
+        log_graph = axes.plot(<span class="kw">lambda</span> x: np.log(x), x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=YELLOW)
+        log_label = MathTex(<span class="str">r"y = \log(x)"</span>, color=YELLOW).next_to(log_graph, UP)
+        self.play(Create(log_graph), Write(log_label))
+        self.wait(<span class="num-lit">1</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — more functions to plot (swap the lambda)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># log base 10 instead of natural log</span>
+log10_graph = axes.plot(<span class="kw">lambda</span> x: np.log10(x), x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=ORANGE)
+
+<span class="comment"># Parabola</span>
+parabola = axes.plot(<span class="kw">lambda</span> x: x**<span class="num-lit">2</span>, color=BLUE)
+
+<span class="comment"># Sine wave</span>
+sine_graph = axes.plot(<span class="kw">lambda</span> x: np.sin(x), color=GREEN)
+
+<span class="comment"># Exponential</span>
+exp_graph = axes.plot(<span class="kw">lambda</span> x: np.exp(x), x_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>], color=PURPLE)
+
+<span class="comment"># 1/x (has an asymptote — split into two plots to avoid the gap being joined)</span>
+inv_graph_pos = axes.plot(<span class="kw">lambda</span> x: <span class="num-lit">1</span>/x, x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=RED)
+inv_graph_neg = axes.plot(<span class="kw">lambda</span> x: <span class="num-lit">1</span>/x, x_range=[-<span class="num-lit">10</span>, -<span class="num-lit">0.1</span>], color=RED)
+
+<span class="comment"># Shade the area under a curve (e.g. for definite integrals)</span>
+area = axes.get_area(parabola, x_range=[<span class="num-lit">0</span>, <span class="num-lit">2</span>], color=BLUE, opacity=<span class="num-lit">0.4</span>)
+self.play(FadeIn(area))
+
+<span class="comment"># A dot that traces along a graph</span>
+dot = Dot(color=YELLOW).move_to(axes.i2gp(<span class="num-lit">0</span>, parabola))
+self.play(MoveAlongPath(dot, parabola), run_time=<span class="num-lit">3</span>)</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Always give <code>log</code>/<code>1/x</code> plots an <code>x_range</code> starting just above <code>0</code> (like <code>0.1</code>) — plugging in <code>x = 0</code> is undefined and will error or break the graph.</div>
   </div>
 
   <hr class="divider" style="margin: 50px 0;">
@@ -1416,6 +1993,77 @@ surface = Surface(
   </div>
 
   <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — plotting on x-y-z axes (3D curves & surfaces from a function)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">class</span> <span class="cmd">ThreeDGraphScene</span>(ThreeDScene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        self.set_camera_orientation(phi=<span class="num-lit">75</span> * DEGREES, theta=<span class="num-lit">30</span> * DEGREES)
+
+        axes = ThreeDAxes(
+            x_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>],
+            y_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>],
+            z_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>]
+        )
+        self.play(Create(axes))
+
+        <span class="comment"># 3D parametric curve — e.g. a helix, x(t), y(t), z(t)</span>
+        helix = ParametricFunction(
+            <span class="kw">lambda</span> t: axes.c2p(np.cos(t), np.sin(t), t * <span class="num-lit">0.3</span>),
+            t_range=[<span class="num-lit">0</span>, <span class="num-lit">4</span> * PI],
+            color=YELLOW
+        )
+        self.play(Create(helix))
+
+        <span class="comment"># 3D surface plot — z = f(x, y), e.g. a paraboloid z = x^2 + y^2</span>
+        paraboloid = Surface(
+            <span class="kw">lambda</span> u, v: axes.c2p(u, v, (u**<span class="num-lit">2</span> + v**<span class="num-lit">2</span>) / <span class="num-lit">4</span>),
+            u_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>],
+            v_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>],
+            fill_color=BLUE,
+            fill_opacity=<span class="num-lit">0.7</span>,
+            checkerboard_colors=[BLUE_D, BLUE_E]  <span class="comment"># optional grid look</span>
+        )
+        self.play(Create(paraboloid))
+        self.wait(<span class="num-lit">2</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — more 3D functions to try (swap into Surface / ParametricFunction)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Sine wave surface — z = sin(x) * cos(y)</span>
+wave_surface = Surface(
+    <span class="kw">lambda</span> u, v: axes.c2p(u, v, np.sin(u) * np.cos(v)),
+    u_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>],
+    v_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>],
+    fill_color=TEAL,
+    fill_opacity=<span class="num-lit">0.7</span>
+)
+
+<span class="comment"># Sphere as a parametric surface (instead of the built-in Sphere())</span>
+sphere_surface = Surface(
+    <span class="kw">lambda</span> u, v: axes.c2p(
+        <span class="num-lit">2</span> * np.cos(u) * np.sin(v),
+        <span class="num-lit">2</span> * np.sin(u) * np.sin(v),
+        <span class="num-lit">2</span> * np.cos(v)
+    ),
+    u_range=[<span class="num-lit">0</span>, TAU], v_range=[<span class="num-lit">0</span>, PI],
+    fill_color=RED, fill_opacity=<span class="num-lit">0.6</span>
+)
+
+<span class="comment"># 3D spiral / coil (tighter helix)</span>
+coil = ParametricFunction(
+    <span class="kw">lambda</span> t: axes.c2p(np.cos(t) * <span class="num-lit">0.5</span>, np.sin(t) * <span class="num-lit">0.5</span>, t * <span class="num-lit">0.1</span>),
+    t_range=[<span class="num-lit">0</span>, <span class="num-lit">6</span> * PI],
+    color=GREEN
+)</pre>
+  </div>
+
+  <div class="code-block glass">
     <div class="code-label"><span>Python</span> — rotating camera (orbit around the object)
       <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
     </div>
@@ -1428,39 +2076,200 @@ self.stop_ambient_camera_rotation()
 self.move_camera(phi=<span class="num-lit">60</span> * DEGREES, theta=<span class="num-lit">45</span> * DEGREES, run_time=<span class="num-lit">2</span>)</pre>
   </div>
 
-  <div class="note warn glass">
+  <div class="note warn glass reveal-soft">
     <span class="note-icon">⚠️</span>
     <div>3D scenes are heavier to render on a tablet. Always test with <code>-ql</code> first, and use <code>--renderer=opengl</code> for a real speed boost on 3D-heavy scenes.</div>
   </div>
 
   <hr class="divider" style="margin: 50px 0;">
 
-  <h3 class="animate-fade-in">Other Animations You'll Use Often</h3>
+  <h3 class="animate-fade-in">Animation Library — Every Animation You'll Use, Grouped by Purpose</h3>
+  <p>Every animation in Manim is a wrapper you pass into <code>self.play(...)</code>. This is the full toolkit, grouped by what you're trying to do: bring something onto screen, take it off, morph one thing into another, move it, or draw attention to it.</p>
+
   <div class="code-block glass">
-    <div class="code-label"><span>Python</span> — common animation verbs
+    <div class="code-label"><span>Python</span> — bringing objects ONTO screen
       <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
     </div>
-    <pre>self.play(Create(shape))        <span class="comment"># draws outline</span>
-self.play(Write(text))          <span class="comment"># writes text/formula stroke by stroke</span>
-self.play(FadeIn(shape))        <span class="comment"># fades in</span>
-self.play(FadeOut(shape))       <span class="comment"># fades out</span>
-self.play(GrowFromCenter(shape))<span class="comment"> # grows outward from center</span>
-self.play(Rotate(shape, angle=PI))  <span class="comment"># rotates it</span>
-self.play(Indicate(shape))      <span class="comment"># briefly pulses/highlights it</span>
-self.play(Circumscribe(shape))  <span class="comment"># draws a highlight box/circle around it</span>
-self.play(shape.animate.scale(<span class="num-lit">2</span>))     <span class="comment"># scales up 2x</span>
-self.play(shape.animate.rotate(PI/<span class="num-lit">4</span>)) <span class="comment"># rotate 45°</span>
+    <pre><span class="comment"># Create — draws the outline/stroke of a shape (most common)</span>
+self.play(Create(circle))
 
-<span class="comment"># Play multiple animations at the same time</span>
+<span class="comment"># Write — for text and MathTex, writes it stroke by stroke like handwriting</span>
+self.play(Write(text))
+self.play(Write(formula))
+
+<span class="comment"># FadeIn — simply fades in from invisible to visible</span>
+self.play(FadeIn(shape))
+
+<span class="comment"># FadeIn from a direction — fades in while sliding from that side</span>
+self.play(FadeIn(shape, shift=UP))
+self.play(FadeIn(shape, shift=RIGHT * <span class="num-lit">2</span>))
+
+<span class="comment"># GrowFromCenter — scales up from a single point in the middle</span>
+self.play(GrowFromCenter(shape))
+
+<span class="comment"># GrowFromEdge / GrowFromPoint — grows from a specific edge or coordinate</span>
+self.play(GrowFromEdge(shape, LEFT))
+self.play(GrowFromPoint(shape, ORIGIN))
+
+<span class="comment"># GrowArrow — arrow-specific grow-in animation</span>
+self.play(GrowArrow(arrow))
+
+<span class="comment"># DrawBorderThenFill — draws the outline first, then fills it in</span>
+self.play(DrawBorderThenFill(shape))
+
+<span class="comment"># SpinInFromNothing — spins in while growing from nothing</span>
+self.play(SpinInFromNothing(shape))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — taking objects OFF screen / removing
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># FadeOut — simply fades to invisible</span>
+self.play(FadeOut(shape))
+
+<span class="comment"># FadeOut in a direction — fades while sliding that way</span>
+self.play(FadeOut(shape, shift=DOWN))
+
+<span class="comment"># Uncreate — reverse of Create, un-draws the outline</span>
+self.play(Uncreate(shape))
+
+<span class="comment"># ShrinkToCenter — shrinks down to a point and disappears</span>
+self.play(ShrinkToCenter(shape))
+
+<span class="comment"># self.remove() — instantly removes with NO animation (use outside self.play)</span>
+self.remove(shape)
+
+<span class="comment"># Clear everything on screen at once</span>
+self.play(*[FadeOut(m) for m in self.mobjects])</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — Transform &amp; ReplacementTransform (morphing A into B)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Transform — morphs shape A to look like shape B, but A stays the object in the scene</span>
+<span class="comment"># (using A again later still refers to the same mobject, now shaped like B)</span>
+circle = Circle(color=BLUE)
+square = Square(color=GREEN)
+self.play(Create(circle))
+self.play(Transform(circle, square))
+
+<span class="comment"># ReplacementTransform — morphs A into B, then B fully replaces A in the scene</span>
+<span class="comment"># (cleaner when the two shapes are very different, e.g. circle -> star)</span>
+triangle = Triangle(color=RED)
+star = Star(color=YELLOW)
+self.play(Create(triangle))
+self.play(ReplacementTransform(triangle, star))
+
+<span class="comment"># TransformMatchingTex — morphs one formula into another, matching identical symbols</span>
+<span class="comment"># so shared parts glide into place instead of the whole thing dissolving</span>
+eq1 = MathTex(<span class="str">r"x + 2 = 5"</span>)
+eq2 = MathTex(<span class="str">r"x = 3"</span>)
+self.play(Write(eq1))
+self.play(TransformMatchingTex(eq1, eq2))
+
+<span class="comment"># TransformMatchingShapes — same idea but for general shapes/VGroups, not just Tex</span>
+self.play(TransformMatchingShapes(triangle, star))
+
+<span class="comment"># FadeTransform — crossfades between the two objects (fade out A while fading in B)</span>
+self.play(FadeTransform(circle, square))
+
+<span class="comment"># CounterclockwiseTransform / ClockwiseTransform — like Transform but forces</span>
+<span class="comment"># the morph to visibly rotate in that direction as it happens</span>
+self.play(ClockwiseTransform(circle, square))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — movement &amp; positioning animations
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># .animate — the general-purpose way to animate ANY property change</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">2</span>))
+self.play(shape.animate.move_to(ORIGIN))
+self.play(shape.animate.scale(<span class="num-lit">2</span>))          <span class="comment"># scale up 2x</span>
+self.play(shape.animate.scale(<span class="num-lit">0.5</span>))        <span class="comment"># scale down to half</span>
+self.play(shape.animate.rotate(PI / <span class="num-lit">4</span>))    <span class="comment"># rotate 45°</span>
+self.play(shape.animate.set_color(RED))
+self.play(shape.animate.to_edge(UP))
+
+<span class="comment"># MoveToTarget — set a target state first, then animate toward it</span>
+shape.generate_target()
+shape.target.shift(RIGHT * <span class="num-lit">3</span>)
+shape.target.set_color(YELLOW)
+self.play(MoveToTarget(shape))
+
+<span class="comment"># MoveAlongPath — animate an object sliding along a curve/graph</span>
+self.play(MoveAlongPath(dot, path))
+
+<span class="comment"># Rotate — dedicated rotate animation (alternative to .animate.rotate)</span>
+self.play(Rotate(shape, angle=PI, about_point=ORIGIN))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — emphasis &amp; attention (highlighting without changing the object)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Indicate — briefly grows and changes color, then returns to normal</span>
+self.play(Indicate(shape))
+
+<span class="comment"># Circumscribe — draws a temporary highlight box/circle around it</span>
+self.play(Circumscribe(shape))
+self.play(Circumscribe(shape, Circle))   <span class="comment"># circle instead of the default rectangle</span>
+
+<span class="comment"># Flash — a quick burst of lines radiating from a point</span>
+self.play(Flash(dot))
+
+<span class="comment"># Wiggle — a small shake/wiggle to draw the eye</span>
+self.play(Wiggle(shape))
+
+<span class="comment"># FocusOn — dims everything else, spotlighting this object</span>
+self.play(FocusOn(shape))
+
+<span class="comment"># ApplyWave — a ripple/wave distortion passes through the object</span>
+self.play(ApplyWave(shape))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — sequencing: together, one-after-another, staggered
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Play multiple animations at the same time (simultaneously)</span>
 self.play(Create(circle), Write(text))
 
-<span class="comment"># Play animations one after another with delay</span>
+<span class="comment"># Play animations one after another — just call self.play() again</span>
 self.play(Create(circle))
-self.play(Write(text), run_time=<span class="num-lit">1.5</span>)</pre>
+self.play(Write(text), run_time=<span class="num-lit">1.5</span>)
+
+<span class="comment"># AnimationGroup — bundles several animations, each with its own delay offset</span>
+self.play(AnimationGroup(
+    Create(circle),
+    Write(text),
+    lag_ratio=<span class="num-lit">0.5</span>   <span class="comment"># text starts halfway through the circle's animation</span>
+))
+
+<span class="comment"># LaggedStart — plays a list of animations with a staggered start (nice for lists/groups)</span>
+self.play(LaggedStart(
+    FadeIn(item1), FadeIn(item2), FadeIn(item3),
+    lag_ratio=<span class="num-lit">0.3</span>
+))
+
+<span class="comment"># Succession — plays animations strictly one after another in a single self.play call</span>
+self.play(Succession(Create(circle), Write(text)))</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div><strong style="color:var(--text)">Which "transform" do I use?</strong> Plain <code>Transform(A, B)</code> when you'll keep referring to <code>A</code> afterward (it now looks like B). <code>ReplacementTransform(A, B)</code> when <code>B</code> is the object you'll use going forward and the shapes are very different. <code>TransformMatchingTex</code> for step-by-step equation edits (keeps matching symbols steady). <code>FadeTransform</code> when you just want a smooth crossfade rather than a literal morph.</div>
+  </div>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">💾</span>
+    <div><strong style="color:var(--text)">Saving your render:</strong> Manim saves automatically — every <code>self.play()</code> is baked into the output video file when you run <code>manim -ql file.py SceneName</code>. There's no separate "save" step; the finished <code>.mp4</code> lands in <code>media/videos/.../</code> (see Step 5 — Find &amp; Copy the Output Video above). To render a fresh version after edits, just re-run the same render command — Manim overwrites/creates a new file each time.</div>
   </div>
 
   <h3 class="animate-fade-in">Quick Reference — Everything on One Page</h3>
-  <table class="error-table glass">
+  <table class="error-table glass reveal-soft">
     <thead>
       <tr><th>What you want</th><th>Command</th></tr>
     </thead>
@@ -1468,22 +2277,44 @@ self.play(Write(text), run_time=<span class="num-lit">1.5</span>)</pre>
       <tr><td>Circle / Square / Triangle</td><td><code>Circle()</code> / <code>Square()</code> / <code>Triangle()</code></td></tr>
       <tr><td>Fill a shape with color</td><td><code>fill_color=BLUE, fill_opacity=1</code></td></tr>
       <tr><td>Custom / mixed color</td><td><code>"#ff6b9d"</code> or <code>average_color(RED, BLUE)</code></td></tr>
+      <tr><td>Color shades</td><td><code>BLUE_A</code> (lightest) through <code>BLUE_E</code> (darkest)</td></tr>
       <tr><td>Plain text</td><td><code>Text("hello")</code></td></tr>
       <tr><td>Math formula</td><td><code>MathTex(r"x^2")</code></td></tr>
+      <tr><td>nCr formula</td><td><code>MathTex(r"\binom{n}{r} = \frac{n!}{r!(n-r)!}")</code></td></tr>
+      <tr><td>Definite integral</td><td><code>MathTex(r"\int_{0}^{1} x^2 \, dx")</code></td></tr>
+      <tr><td>Summation with limits</td><td><code>MathTex(r"\sum_{i=1}^{n} i")</code></td></tr>
+      <tr><td>Limit</td><td><code>MathTex(r"\lim_{x \to 0} f(x)")</code></td></tr>
+      <tr><td>Derivative</td><td><code>MathTex(r"\frac{d}{dx} x^2")</code></td></tr>
       <tr><td>Color part of text</td><td><code>text[0:3].set_color(RED)</code></td></tr>
+      <tr><td>Matrix as an object</td><td><code>Matrix([[1,2],[3,4]])</code></td></tr>
       <tr><td>Morph shape A into B</td><td><code>Transform(A, B)</code></td></tr>
+      <tr><td>Morph A into B, B replaces A</td><td><code>ReplacementTransform(A, B)</code></td></tr>
+      <tr><td>Morph one formula into another</td><td><code>TransformMatchingTex(eq1, eq2)</code></td></tr>
+      <tr><td>Crossfade A into B</td><td><code>FadeTransform(A, B)</code></td></tr>
+      <tr><td>Fade in / out</td><td><code>FadeIn(shape)</code> / <code>FadeOut(shape)</code></td></tr>
+      <tr><td>Un-draw a shape</td><td><code>Uncreate(shape)</code></td></tr>
+      <tr><td>Remove instantly, no animation</td><td><code>self.remove(shape)</code></td></tr>
+      <tr><td>Highlight without changing it</td><td><code>Indicate(shape)</code> / <code>Circumscribe(shape)</code> / <code>Flash(dot)</code></td></tr>
+      <tr><td>Stagger a list of animations</td><td><code>LaggedStart(..., lag_ratio=0.3)</code></td></tr>
       <tr><td>Move to edge/corner</td><td><code>.to_edge(UP)</code> / <code>.to_corner(DOWN+LEFT)</code></td></tr>
-      <tr><td>Move by offset</td><td><code>.shift(RIGHT*2)</code></td></tr>
+      <tr><td>Move by offset (relative)</td><td><code>.shift(RIGHT*2)</code></td></tr>
+      <tr><td>Animate a shift</td><td><code>self.play(shape.animate.shift(UP*2))</code></td></tr>
+      <tr><td>Shift a group of objects</td><td><code>VGroup(a,b,c).animate.shift(DOWN)</code></td></tr>
       <tr><td>Move next to another object</td><td><code>.next_to(obj, UP)</code></td></tr>
+      <tr><td>2D graph axes</td><td><code>Axes(x_range=[...], y_range=[...])</code></td></tr>
+      <tr><td>Plot a function (e.g. log x)</td><td><code>axes.plot(lambda x: np.log(x), x_range=[0.1,10])</code></td></tr>
+      <tr><td>Shade area under curve</td><td><code>axes.get_area(graph, x_range=[0,2])</code></td></tr>
       <tr><td>3D scene base class</td><td><code>class X(ThreeDScene)</code></td></tr>
       <tr><td>3D camera angle</td><td><code>self.set_camera_orientation(phi=75*DEGREES, theta=30*DEGREES)</code></td></tr>
       <tr><td>Cube / Sphere / Cylinder</td><td><code>Cube()</code> / <code>Sphere()</code> / <code>Cylinder()</code></td></tr>
       <tr><td>3D axes</td><td><code>ThreeDAxes()</code></td></tr>
+      <tr><td>3D curve on x-y-z axes</td><td><code>ParametricFunction(lambda t: axes.c2p(...), t_range=[...])</code></td></tr>
+      <tr><td>3D surface z = f(x,y)</td><td><code>Surface(lambda u,v: axes.c2p(u, v, f(u,v)), u_range, v_range)</code></td></tr>
       <tr><td>Rotate camera around scene</td><td><code>self.begin_ambient_camera_rotation(rate=0.2)</code></td></tr>
     </tbody>
   </table>
 
-  <div class="note success glass">
+  <div class="note success glass reveal-soft">
     <span class="note-icon">💡</span>
     <div>Bookmark this section (<a href="#writing" style="color:var(--accent); font-weight:600;">#writing</a>) — it's built to be searched, not read top to bottom. Every time you forget a command, come back and Ctrl+F for it.</div>
   </div>
@@ -1534,7 +2365,7 @@ self.play(Write(text), run_time=<span class="num-lit">1.5</span>)</pre>
 
   <p>Then, from a browser on the same device, open <code>http://localhost:8080</code>.</p>
 
-  <div class="note info glass">
+  <div class="note info glass reveal-soft">
     <span class="note-icon">🔑</span>
     <div><strong style="color:var(--text)">Need the auto-generated password?</strong> code-server prints a random password to the terminal on first run. If you missed it, retrieve it any time with:</div>
   </div>
@@ -1554,6 +2385,46 @@ self.play(Write(text), run_time=<span class="num-lit">1.5</span>)</pre>
 </div>
 
 <script>
+// --- scroll progress bar ---
+(function(){
+  const bar = document.getElementById('scrollProgress');
+  function update() {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (scrolled / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// --- scroll-triggered reveal animations ---
+(function(){
+  const targets = document.querySelectorAll('.animate-fade-in, .reveal-soft');
+  const groups = {}; // stagger siblings that enter together
+  targets.forEach((el) => {
+    const parent = el.closest('.section') || document.body;
+    groups[parent] = groups[parent] || [];
+    groups[parent].push(el);
+  });
+  Object.values(groups).forEach(list => {
+    list.forEach((el, i) => {
+      el.style.transitionDelay = Math.min(i, 5) * 0.06 + 's';
+    });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  targets.forEach(el => observer.observe(el));
+})();
+
 // Robust copy that works even without navigator.clipboard
 // (clipboard API needs HTTPS or localhost; opening this file directly
 // via file:// or over plain http:// on Android would silently fail)
@@ -1611,36 +2482,52 @@ function copyBlock(btn) {
   const pre = btn.closest('.code-block').querySelector('pre');
   copyTextToClipboard(pre.innerText, btn);
 }
-
-// Password gate logic
-function checkPassword() {
-  const input = document.getElementById('lock-input');
-  const error = document.getElementById('lock-error');
-  if (input.value === SITE_PASSWORD) {
-    document.getElementById('lock-screen').style.display = 'none';
-    document.getElementById('site-content').style.display = 'block';
-    try { sessionStorage.setItem('site-unlocked', 'yes'); } catch (e) {}
-  } else {
-    error.textContent = 'Incorrect password. Try again.';
-    input.value = '';
-    input.focus();
-  }
-}
-
-document.getElementById('lock-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') checkPassword();
-});
-
-// Skip the lock screen again this tab session once unlocked once
-try {
-  if (sessionStorage.getItem('site-unlocked') === 'yes') {
-    document.getElementById('lock-screen').style.display = 'none';
-    document.getElementById('site-content').style.display = 'block';
-  }
-} catch (e) {}
 </script>
 
-</div><!-- /#site-content -->
+</div><!-- /main-content -->
+
+<script>
+// --- password gate ---
+// EDIT THIS VALUE to set your password:
+const SITE_PASSWORD = "915684";
+
+(function(){
+  const lockScreen = document.getElementById('lock-screen');
+  const lockInput = document.getElementById('lock-input');
+  const lockError = document.getElementById('lock-error');
+  const lockSubmit = document.getElementById('lock-submit');
+  const mainContent = document.getElementById('main-content');
+
+  function tryUnlock(){
+    if(lockInput.value === SITE_PASSWORD){
+      lockScreen.style.transition = 'opacity .45s cubic-bezier(.2,.8,.2,1), transform .45s cubic-bezier(.2,.8,.2,1)';
+      lockScreen.style.opacity = '0';
+      lockScreen.style.transform = 'scale(1.03)';
+      setTimeout(() => { lockScreen.style.display = 'none'; }, 450);
+      mainContent.style.display = '';
+      sessionStorage.setItem('manim-guide-unlocked', '1');
+    } else {
+      lockError.textContent = 'incorrect password';
+      const card = document.querySelector('.glass-card');
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'lock-shake .4s ease';
+      lockInput.value = '';
+      lockInput.focus();
+    }
+  }
+
+  lockSubmit.addEventListener('click', tryUnlock);
+  lockInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
+
+  if(sessionStorage.getItem('manim-guide-unlocked') === '1'){
+    lockScreen.style.display = 'none';
+    mainContent.style.display = '';
+  } else {
+    lockInput.focus();
+  }
+})();
+</script>
 
 </body>
 </html>
