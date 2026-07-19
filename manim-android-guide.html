@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manim on Android — Complete Guide</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    --glass-bg: rgba(255, 255, 255, 0.4);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 12px 40px 0 rgba(0, 100, 200, 0.15);
+    --accent: #0284c7;
+    --accent2: #0ea5e9;
+    --text: #0c4a6e;
+    --muted: #64748b;
+    --warn: #f59e0b;
+    --success: #10b981;
+    --code-bg: rgba(255, 255, 255, 0.5);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-gradient);
+    background-size: 180% 180%;
+    background-attachment: fixed;
+    animation: gradientDrift 18s ease-in-out infinite;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  @keyframes gradientDrift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 999;
+    transition: width 0.1s ease-out;
+  }
+
+  /* Liquid Glass Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  @keyframes orbitSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .hero-float-anim svg {
+    transform-origin: 13px 13px;
+    animation: orbitSpin 3s linear infinite;
+  }
+
+  .animate-fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1), transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .animate-fade-in.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .reveal-soft {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1), transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .reveal-soft.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .hero-title-anim {
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+
+  /* Glassmorphism Effect */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    box-shadow: var(--glass-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass:hover {
+    transform: scale(1.01);
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 50px 0 rgba(0, 100, 200, 0.2);
+  }
+
+  .hero {
+    padding: 60px 40px;
+    margin-bottom: 48px;
+    text-align: center;
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    border: 1px solid var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.3);
+  }
+
+  h1 {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #0c4a6e 0%, #0284c7 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p { color: var(--muted); font-size: 18px; max-width: 650px; margin: 0 auto 30px; }
+
+  .device-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--glass-border);
+    padding: 8px 16px;
+    border-radius: 15px;
+    font-size: 14px;
+    color: var(--accent);
+    animation: float 4s ease-in-out infinite;
+  }
+
+  /* TOC */
+  .toc {
+    padding: 32px;
+    margin-bottom: 60px;
+  }
+  .toc-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc > ol > li { counter-increment: toc; margin-bottom: 10px; }
+  .toc > ol > li > a::before {
+    content: counter(toc, decimal-leading-zero) " — ";
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .toc a { color: var(--text); text-decoration: none; font-size: 16px; transition: all 0.3s; opacity: 0.8; }
+  .toc a:hover { opacity: 1; color: var(--accent); transform: translateX(8px); }
+
+  /* Sections */
+  .section { margin-bottom: 80px; }
+  h2 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #0c4a6e;
+  }
+  h2 .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #fff;
+    background: var(--accent);
+    padding: 4px 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 32px 0 16px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  p { margin-bottom: 20px; color: #334155; }
+
+  /* Code blocks */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    margin: 20px 0 30px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .code-label {
+    background: rgba(255, 255, 255, 0.4);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 10px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .code-label span { color: var(--accent); font-weight: 600; }
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1e293b;
+  }
+  .cmd { color: #0369a1; font-weight: 600; }
+  .comment { color: #64748b; font-style: italic; }
+  .str { color: #059669; }
+  .kw { color: #7c3aed; }
+  .num-lit { color: #d97706; }
+
+  /* Copy button */
+  .copy-btn {
+    position: relative;
+    overflow: hidden;
+    background: rgba(2, 132, 199, 0.1);
+    border: 1px solid rgba(2, 132, 199, 0.3);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    will-change: transform;
+    transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .copy-btn:hover { background: rgba(2, 132, 199, 0.2); transform: scale(1.05); }
+  .copy-btn:active { transform: scale(0.94); }
+  .copy-btn.copied {
+    color: #fff;
+    border-color: var(--success);
+    background: var(--success);
+    animation: copyPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes copyPop {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+  /* Ripple feedback on click — GPU-accelerated (transform + opacity only) */
+  .copy-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: rgba(16, 185, 129, 0.5);
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+  }
+  .copy-btn.copied::after {
+    animation: copyRipple 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes copyRipple {
+    0%   { opacity: 0.6; transform: scale(0.6); }
+    100% { opacity: 0; transform: scale(1.8); }
+  }
+
+  /* Notes */
+  .note {
+    border-radius: 20px;
+    padding: 20px;
+    margin: 24px 0;
+    font-size: 15px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .note.warn { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #92400e; }
+  .note.info { background: rgba(14, 165, 233, 0.15); border: 1px solid rgba(14, 165, 233, 0.3); color: #075985; }
+  .note.success { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #065f46; }
+  .note-icon { font-size: 20px; flex-shrink: 0; }
+
+  /* Space badge */
+  .space-badge {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    margin: 24px 0;
+    width: 100%;
+  }
+  .space-badge .icon { font-size: 32px; }
+  .space-badge .details { display: flex; flex-direction: column; gap: 4px; }
+  .space-badge .label { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.1em; }
+  .space-badge .value { font-size: 24px; font-weight: 800; color: var(--accent); }
+  .space-badge .breakdown { font-size: 13px; color: #64748b; }
+
+  /* Steps */
+  .step-list { list-style: none; counter-reset: step; margin: 12px 0 30px; }
+  .step-list li {
+    counter-increment: step;
+    display: flex;
+    gap: 18px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+    color: #334155;
+    font-size: 15px;
+  }
+  .step-list li::before {
+    content: counter(step);
+    min-width: 30px;
+    height: 30px;
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    color: #fff;
+    flex-shrink: 0;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
+  }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: rgba(2, 132, 199, 0.1);
+    border: 1px solid rgba(2, 132, 199, 0.2);
+    padding: 2px 6px;
+    border-radius: 6px;
+    color: var(--accent);
+  }
+
+  /* Error table */
+  .error-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0 30px; font-size: 14px; overflow: hidden; border-radius: 20px; border: 1px solid var(--glass-border); }
+  .error-table th {
+    text-align: left; padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.4);
+    color: var(--accent); font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .error-table td { padding: 14px 20px; border-bottom: 1px solid var(--glass-border); vertical-align: top; color: #334155; }
+  .error-table tr:last-child td { border-bottom: none; }
+  .error-table tr:hover td { background: rgba(255, 255, 255, 0.3); }
+  .error-name { color: #dc2626; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; }
+  .error-fix { color: var(--success); font-weight: 500; }
+
+  .divider { border: none; border-top: 1px solid var(--glass-border); margin: 60px 0; opacity: 0.5; }
+
+  .oneliner-wrap {
+    padding: 32px;
+    margin: 30px 0;
+    border: 1px solid rgba(2, 132, 199, 0.3);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(2, 132, 199, 0.1));
+  }
+  .oneliner-wrap .code-block { margin: 0; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 2rem; }
+    body { padding: 24px 16px 60px; }
+    .hero { padding: 40px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="lock-screen" style="position:fixed; inset:0; z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; overflow:hidden; background:linear-gradient(135deg,#dceefc,#eaf6ff 40%,#d7ecfb);">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="glass-card">
+    <div class="lock-icon-wrap">
+      <div class="lock-icon">&#128274;</div>
+    </div>
+    <div class="glass-title">Enter Password</div>
+    <div class="glass-sub">This page is protected. Enter the password<br>to continue.</div>
+    <input id="lock-input" type="password" placeholder="Password" autocomplete="off" class="glass-input">
+    <div id="lock-error" class="glass-error"></div>
+    <button id="lock-submit" class="glass-btn">Enter</button>
+  </div>
+</div>
+
+<style>
+  .blob{
+    position:absolute;
+    border-radius:50%;
+    filter: blur(50px);
+    opacity:0.55;
+    animation: lock-drift 14s ease-in-out infinite;
+  }
+  .blob.b1{
+    width:340px; height:340px;
+    background: radial-gradient(circle at 30% 30%, #a7d8ff, #6fb8f2);
+    top:-80px; left:-80px;
+    animation-duration: 16s;
+  }
+  .blob.b2{
+    width:280px; height:280px;
+    background: radial-gradient(circle at 60% 40%, #cdeaff, #7fc4f5);
+    bottom:-100px; right:-60px;
+    animation-duration: 19s;
+    animation-delay: -4s;
+  }
+  .blob.b3{
+    width:220px; height:220px;
+    background: radial-gradient(circle at 50% 50%, #e3f4ff, #9dd4fb);
+    bottom:20%; left:8%;
+    animation-duration: 13s;
+    animation-delay: -8s;
+  }
+  @keyframes lock-drift{
+    0%,100%{ transform: translate(0,0) scale(1); }
+    33%{ transform: translate(30px,-20px) scale(1.08); }
+    66%{ transform: translate(-20px,25px) scale(0.95); }
+  }
+
+  .glass-card{
+    position:relative;
+    z-index:2;
+    width:100%; max-width:380px;
+    padding:40px 32px 34px;
+    text-align:center;
+    background: rgba(255,255,255,0.35);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border-radius:26px;
+    border:1px solid rgba(255,255,255,0.6);
+    box-shadow:
+      0 8px 32px rgba(70,130,190,0.18),
+      inset 0 1px 1px rgba(255,255,255,0.8);
+    animation: lock-card-in .6s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes lock-card-in{
+    from{ opacity:0; transform: translateY(16px) scale(0.97); }
+    to{ opacity:1; transform: translateY(0) scale(1); }
+  }
+
+  .lock-icon-wrap{
+    width:56px; height:56px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    background: linear-gradient(145deg, rgba(255,255,255,0.85), rgba(184,224,255,0.55));
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 4px 14px rgba(90,160,220,0.35), inset 0 1px 1px rgba(255,255,255,0.9);
+    animation: lock-float 3.5s ease-in-out infinite;
+  }
+  @keyframes lock-float{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-5px); }
+  }
+  .lock-icon{ font-size:24px; }
+
+  .glass-title{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:22px;
+    font-weight:700;
+    color:#1a3a52;
+    margin-bottom:10px;
+    letter-spacing:-0.01em;
+  }
+  .glass-sub{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:14.5px;
+    color:#4a6b85;
+    line-height:1.55;
+    margin-bottom:24px;
+  }
+  .glass-input{
+    width:100%; box-sizing:border-box;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:15px;
+    padding:14px 16px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,0.7);
+    background: rgba(255,255,255,0.45);
+    backdrop-filter: blur(6px);
+    color:#1a3a52;
+    outline:none;
+    margin-bottom:14px;
+    transition: box-shadow .2s ease, background .2s ease;
+  }
+  .glass-input::placeholder{ color:#7ba0bd; }
+  .glass-input:focus{
+    background: rgba(255,255,255,0.65);
+    box-shadow: 0 0 0 3px rgba(111,184,242,0.35);
+  }
+  .glass-error{
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:12.5px;
+    color:#c0392b;
+    margin:-6px 0 10px;
+    min-height:16px;
+  }
+  .glass-btn{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background: linear-gradient(135deg,#5aa9f0,#3d82d1);
+    color:#fff;
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    box-shadow: 0 6px 18px rgba(61,130,209,0.4), inset 0 1px 1px rgba(255,255,255,0.4);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .glass-btn:hover{
+    transform: translateY(-1px);
+    box-shadow: 0 8px 22px rgba(61,130,209,0.5), inset 0 1px 1px rgba(255,255,255,0.5);
+  }
+  .glass-btn:active{
+    transform: translateY(0px) scale(0.98);
+  }
+  @keyframes lock-shake{
+    0%,100%{ transform: translateX(0); }
+    20%{ transform: translateX(-8px); }
+    40%{ transform: translateX(8px); }
+    60%{ transform: translateX(-5px); }
+    80%{ transform: translateX(5px); }
+  }
+</style>
+
+<div id="main-content" style="display:none;">
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<div class="hero glass">
+  <div class="hero-tag">Complete Setup Guide</div>
+  <h1 class="hero-title-anim">Manim on Android</h1>
+  <p>Run the Mathematical Animation Engine fully offline on your Android tablet — no PC required.</p>
+  <div class="device-badge hero-float-anim" aria-hidden="true">
+    <svg width="26" height="26" viewBox="0 0 26 26" style="display:block;">
+      <circle cx="13" cy="13" r="10" fill="none" stroke="var(--accent)" stroke-width="2" opacity="0.35"/>
+      <circle class="orbit-dot" cx="13" cy="3" r="2.5" fill="var(--accent)"/>
+    </svg>
+    <span>Animating with Manim</span>
+  </div>
+</div>
+
+<nav class="toc glass reveal-soft" id="top">
+  <div class="toc-title">Contents</div>
+  <ol>
+    <li><a href="#manual">Manual Installation</a></li>
+    <li><a href="#oneliner">One-Line Installation</a></li>
+    <li><a href="#making">Making an Animation (Every Time)</a></li>
+    <li><a href="#x11">Live Preview with Termux:X11</a></li>
+    <li><a href="#settings">Manim Settings & Configuration</a></li>
+    <li><a href="#writing">Writing a Manim Code</a></li>
+    <li><a href="#vscode">Install VS Code on Android (proot-distro way)</a></li>
+  </ol>
+</nav>
+
+<section class="section" id="manual">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">01</span> Manual Installation</h2>
+
+  <h3 class="animate-fade-in">Apps to Install First</h3>
+  <p>Install these before opening Termux:</p>
+  <ul class="step-list">
+    <li><strong style="color:var(--text)">Termux</strong> — from F-Droid only. Version <code>0.119.0-beta.3</code> (code 1022). <br>→ f-droid.org/packages/com.termux</li>
+    <li><strong style="color:var(--text)">Termux:X11</strong> — nightly APK, pick <code>app-arm64-v8a-debug.apk</code>.<br>→ github.com/termux/termux-x11/releases</li>
+    <li><strong style="color:var(--text)">VLC</strong> — to play rendered .mp4 files. → Play Store</li>
+  </ul>
+
+  <h3 class="animate-fade-in">Step 1 — Termux Initial Setup</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">pkg update && pkg upgrade -y</span>
+<span class="cmd">pkg install -y proot-distro curl wget git</span>
+<span class="cmd">termux-setup-storage</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 2 — Install Ubuntu via proot-distro</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro install ubuntu</span>
+<span class="cmd">proot-distro login ubuntu</span></pre>
+  </div>
+  <p>Your prompt changes to <code>root@localhost:~#</code>. You are now inside Ubuntu.</p>
+
+  <h3 class="animate-fade-in">Step 3 — Install Dependencies Inside Ubuntu</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — update & python
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt update && apt upgrade -y</span>
+<span class="cmd">apt install -y python3 python3-pip python3-venv python3-dev</span></pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — ffmpeg
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt install -y ffmpeg</span></pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — latex (~800MB)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt install -y texlive texlive-latex-extra texlive-fonts-recommended cm-super dvipng</span></pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — cairo & pango
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt install -y libcairo2-dev libpango1.0-dev pkg-config</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 4 — Install Manim</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">mkdir ~/manim-projects && cd ~/manim-projects</span>
+<span class="cmd">python3 -m venv manim-env</span>
+<span class="cmd">source manim-env/bin/activate</span>
+<span class="cmd">pip install --upgrade pip</span>
+<span class="cmd">pip install manim</span>
+<span class="cmd">manim --version</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 5 — First Animation</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — create scene
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">nano ~/manim-projects/first.py</span></pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — first.py
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+
+<span class="kw">class</span> <span class="cmd">HelloCircle</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        circle = Circle(radius=<span class="num-lit">2</span>, color=BLUE)
+        label  = Text(<span class="str">"Manim on Android!"</span>)
+        self.play(Create(circle))
+        self.play(Write(label))
+        self.wait(<span class="num-lit">2</span>)</pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — render
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">manim -ql first.py HelloCircle</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 6 — View Output</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">cp ~/manim-projects/media/videos/first/480p15/HelloCircle.mp4 /sdcard/Download/</span></pre>
+  </div>
+  <p>Then open VLC → Downloads → tap the file.</p>
+
+  <h3 class="animate-fade-in">Common Errors</h3>
+  <table class="error-table glass reveal-soft">
+    <thead>
+      <tr><th>Error</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="error-name">ModuleNotFoundError: manim</span></td><td class="error-fix">Run <code>source manim-env/bin/activate</code> first</td></tr>
+      <tr><td><span class="error-name">latex not found</span></td><td class="error-fix"><code>apt install texlive-full</code> or use <code>--no_tex_template</code></td></tr>
+      <tr><td><span class="error-name">ffmpeg not found</span></td><td class="error-fix"><code>apt install ffmpeg</code> inside Ubuntu</td></tr>
+      <tr><td><span class="error-name">cairo backend error</span></td><td class="error-fix"><code>apt install libcairo2-dev</code> then reinstall manim</td></tr>
+      <tr><td><span class="error-name">Permission denied /sdcard/</span></td><td class="error-fix">Run <code>termux-setup-storage</code> in Termux and allow permission</td></tr>
+      <tr><td><span class="error-name">Killed (out of RAM)</span></td><td class="error-fix">Use <code>-ql</code> flag, close other apps</td></tr>
+      <tr><td><span class="error-name">container ubuntu is not installed</span></td><td class="error-fix">Run <code>proot-distro remove ubuntu</code> then reinstall. Keep screen on during download.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="oneliner">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">02</span> One-Line Installation</h2>
+  <p>Paste a single command into Termux. It will automatically show you the disk space required before installing anything, then set up everything — proot-distro, Ubuntu, Python, FFmpeg, LaTeX, Cairo, and Manim — in one go.</p>
+
+  <div class="space-badge glass reveal-soft">
+    <span class="icon">💾</span>
+    <div class="details">
+      <span class="label">Total Disk Space Required</span>
+      <span class="value">~3.5 GB</span>
+      <span class="breakdown">Ubuntu base ~200MB · FFmpeg ~150MB · LaTeX ~800MB · Python + Manim ~300MB · Overhead ~2GB</span>
+    </div>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>Make sure you have at least <strong style="color:var(--text)">4 GB free</strong> on your tablet before running this. Also keep your screen on and Termux in the foreground the entire time — it takes 10–20 minutes.</div>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>The script will print the space breakdown and ask you to confirm before it starts downloading anything. Type <strong style="color:var(--text)">y</strong> and press Enter to proceed.</div>
+  </div>
+
+  <div class="oneliner-wrap glass reveal-soft">
+    <div class="code-block glass">
+        <div class="code-label">
+        <span>Termux</span>
+        <button class="copy-btn" onclick="copyOneliner(this)">Copy</button>
+      </div>
+      <pre id="oneliner-text">pkg update -y && pkg install -y proot-distro && termux-setup-storage && proot-distro install ubuntu && proot-distro login ubuntu -- bash -c '
+echo ""; echo "========================================";
+echo "  MANIM INSTALLATION — SPACE BREAKDOWN";
+echo "========================================";
+echo "  Ubuntu base already installed: ~200 MB";
+echo "  FFmpeg:                        ~150 MB";
+echo "  LaTeX (texlive):               ~800 MB";
+echo "  Cairo + Pango:                 ~100 MB";
+echo "  Python + pip + venv:           ~100 MB";
+echo "  Manim + dependencies:          ~300 MB";
+echo "  Build overhead & cache:        ~1.9 GB";
+echo "----------------------------------------";
+echo "  TOTAL REQUIRED:               ~3.5 GB";
+echo "========================================";
+echo "";
+read -p "Proceed with installation? (y/n): " confirm;
+if [ "$confirm" != "y" ]; then echo "Aborted."; exit 1; fi;
+apt update -y && apt upgrade -y &&
+apt install -y python3 python3-pip python3-venv python3-dev ffmpeg texlive texlive-latex-extra texlive-fonts-recommended cm-super dvipng libcairo2-dev libpango1.0-dev pkg-config &&
+mkdir -p ~/manim-projects && cd ~/manim-projects &&
+python3 -m venv manim-env &&
+source manim-env/bin/activate &&
+pip install --upgrade pip &&
+pip install manim &&
+echo "" &&
+echo "✅ Manim installed successfully!" &&
+echo "   Run: proot-distro login ubuntu" &&
+echo "   Then: cd ~/manim-projects && source manim-env/bin/activate" &&
+echo "   Then: manim --version"
+'</pre>
+    </div>
+  </div>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">✅</span>
+    <div>When it finishes, you'll see <strong style="color:var(--text)">"Manim installed successfully!"</strong> with instructions on how to start. Every future session just needs: <code>proot-distro login ubuntu</code> → <code>cd ~/manim-projects && source manim-env/bin/activate</code>.</div>
+  </div>
+
+  <h3 class="animate-fade-in">Quick Session Alias (Optional)</h3>
+  <p>Add this to <code>~/.bashrc</code> inside Ubuntu so you can just type <code>manimgo</code> to start:</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu ~/.bashrc</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">alias</span> manimgo=<span class="str">"cd ~/manim-projects && source manim-env/bin/activate"</span>
+<span class="cmd">source ~/.bashrc</span></pre>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="making">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">03</span> Making an Animation (Every Time)</h2>
+  <p>Follow these steps every time you open Termux and want to create or render an animation.</p>
+
+  <div class="note glass reveal-soft">
+    <div>⚡ <strong style="color:var(--text)">Quick copy-paste:</strong> run this one block to login, go to your project folder, and activate Manim — all in one go. Then jump straight to Step 3 to create your file.</div>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span> — login + activate (copy this whole block)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro login ubuntu --shared-tmp -- bash -c "cd ~/manim-projects && source manim-env/bin/activate && bash"</span></pre>
+  </div>
+  <p>This logs into Ubuntu, moves into your project folder, and activates Manim automatically. You'll see <code>(manim-env)</code> appear at the start of your prompt — you're ready to create your file.</p>
+
+  <h3 class="animate-fade-in">Step 1 — Open Termux & Enter Ubuntu</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro login ubuntu</span></pre>
+  </div>
+  <p>Your prompt changes to <code>root@localhost:~#</code>. You are now inside Ubuntu.</p>
+
+  <h3 class="animate-fade-in">Step 2 — Go to Your Project Folder & Activate Manim</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">cd ~/manim-projects</span>
+<span class="cmd">source manim-env/bin/activate</span></pre>
+  </div>
+  <p>You'll see <code>(manim-env)</code> appear at the start of your prompt. Manim is now ready.</p>
+
+  <h3 class="animate-fade-in">Step 3 — Create or Edit Your Animation File</h3>
+  <p>Create a new file or edit an existing one using nano:</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — create new file
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">nano my_animation.py</span></pre>
+  </div>
+
+  <p>Write your animation inside. Here is a full example with the most common elements:</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — my_animation.py
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+
+<span class="kw">class</span> <span class="cmd">MyScene</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+
+        <span class="comment"># ── Text ──────────────────────────────────</span>
+        title = Text(<span class="str">"Hello, Manim!"</span>, font_size=<span class="num-lit">48</span>)
+        self.play(Write(title))
+        self.wait(<span class="num-lit">1</span>)
+        self.play(FadeOut(title))
+
+        <span class="comment"># ── Shapes ────────────────────────────────</span>
+        circle = Circle(radius=<span class="num-lit">1.5</span>, color=BLUE)
+        square = Square(side_length=<span class="num-lit">2</span>, color=RED)
+        square.next_to(circle, RIGHT, buff=<span class="num-lit">0.5</span>)
+
+        self.play(Create(circle), Create(square))
+        self.wait(<span class="num-lit">1</span>)
+
+        <span class="comment"># ── Move a shape ──────────────────────────</span>
+        self.play(circle.animate.shift(UP * <span class="num-lit">2</span>))
+        self.wait(<span class="num-lit">0.5</span>)
+
+        <span class="comment"># ── Change color ──────────────────────────</span>
+        self.play(circle.animate.set_color(GREEN))
+        self.wait(<span class="num-lit">0.5</span>)
+
+        <span class="comment"># ── Math equation ─────────────────────────</span>
+        eq = MathTex(r<span class="str">"e^{i\pi} + 1 = 0"</span>, font_size=<span class="num-lit">56</span>)
+        self.play(FadeOut(circle), FadeOut(square))
+        self.play(Write(eq))
+        self.wait(<span class="num-lit">2</span>)
+
+        <span class="comment"># ── End ───────────────────────────────────</span>
+        self.play(FadeOut(eq))</pre>
+  </div>
+
+  <p>When done writing, save and exit nano: press <code>Ctrl+X</code> → <code>Y</code> → <code>Enter</code>.</p>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>
+      <strong style="color:var(--text)">Common things you can use:</strong><br>
+      <code>Text("...")</code> — plain text &nbsp;|&nbsp;
+      <code>MathTex(r"...")</code> — math equations<br>
+      <code>Circle()</code> <code>Square()</code> <code>Triangle()</code> <code>Arrow()</code> <code>Line()</code> — shapes<br>
+      <code>Write()</code> — draw text/equations &nbsp;|&nbsp;
+      <code>Create()</code> — draw shapes<br>
+      <code>FadeIn()</code> <code>FadeOut()</code> — appear/disappear<br>
+      <code>.animate.shift()</code> <code>.animate.scale()</code> <code>.animate.rotate()</code> — move/transform<br>
+      <code>self.wait(1)</code> — pause for 1 second
+    </div>
+  </div>
+
+  <h3 class="animate-fade-in">Step 4 — Render the Animation</h3>
+  <p>Choose a quality level. Always start with low quality to test, then switch to high for the final version.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — render commands
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Low quality — 480p, fastest (use for testing)</span>
+<span class="cmd">manim -ql my_animation.py MyScene</span>
+
+<span class="comment"># Medium quality — 720p</span>
+<span class="cmd">manim -qm my_animation.py MyScene</span>
+
+<span class="comment"># High quality — 1080p (slow, use for final render)</span>
+<span class="cmd">manim -qh my_animation.py MyScene</span>
+
+<span class="comment"># 4K quality — 2160p (very slow, only for powerful devices)</span>
+<span class="cmd">manim -qk my_animation.py MyScene</span></pre>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>Replace <code>MyScene</code> with whatever you named your class. In the example above it's <code>MyScene</code>. It must match exactly.</div>
+  </div>
+
+  <h3 class="animate-fade-in">Step 5 — Find & Copy the Output Video</h3>
+  <p>After rendering, Manim saves the video here:</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — output path
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Low quality output path</span>
+~/manim-projects/media/videos/my_animation/480p15/MyScene.mp4
+
+<span class="comment"># Copy to Downloads so VLC can open it</span>
+<span class="cmd">cp ~/manim-projects/media/videos/my_animation/480p15/MyScene.mp4 /sdcard/Download/</span></pre>
+  </div>
+  <p>Open <strong style="color:var(--text)">VLC</strong> on your tablet → tap <strong style="color:var(--text)">Browse</strong> → <strong style="color:var(--text)">Downloads</strong> → tap the file.</p>
+
+  <h3 class="animate-fade-in">Step 6 — Making Another Animation</h3>
+  <p>Just repeat from Step 3. Create a new <code>.py</code> file with a new class name, or add a new class to the same file and render it by name.</p>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">🚀</span>
+    <div>
+      <strong style="color:var(--text)">Quick session summary every time:</strong><br>
+      1. Open Termux → <code>proot-distro login ubuntu</code><br>
+      2. <code>cd ~/manim-projects && source manim-env/bin/activate</code><br>
+      3. <code>nano filename.py</code> — write your scene<br>
+      4. <code>manim -ql filename.py ClassName</code> — render<br>
+      5. <code>cp media/videos/.../MyScene.mp4 /sdcard/Download/</code> — copy to VLC
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="settings">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">05</span> Manim Settings &amp; Configuration</h2>
+  <p>You can control everything in Manim — resolution, FPS, background color, output format, and more — either via a config file or directly in your render command. Copy the commands below and paste them inside Ubuntu.</p>
+
+  <h3 class="animate-fade-in">Method A — Config File (Recommended)</h3>
+  <p>Create a file called <code>manim.cfg</code> inside your project folder. Manim reads it automatically every time you render.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — create config file
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">nano ~/manim-projects/manim.cfg</span></pre>
+  </div>
+
+  <p>Paste this full config, edit the values you want, then save with <code>Ctrl+X</code> → <code>Y</code> → <code>Enter</code>:</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>manim.cfg</span> — full settings template
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre id="cfg-block">[CLI]
+
+# ── Quality & Resolution ──────────────────
+# Options: low_quality, medium_quality, high_quality, production_quality
+quality = low_quality
+
+# Custom resolution (overrides quality preset)
+# pixel_width = 1920
+# pixel_height = 1080
+
+# Frames per second
+# 15 = low, 30 = standard, 60 = smooth, 120 = ultra smooth
+frame_rate = 30
+
+# ── Output ────────────────────────────────
+# Folder where videos are saved
+media_dir = ./media
+
+# Output file format: mp4, gif, webm, png (png saves every frame as image)
+format = mp4
+
+# Save last frame as image (yes/no)
+save_last_frame = False
+
+# Save every frame as PNG (warning: creates hundreds of files)
+save_pngs = False
+
+# ── Background ────────────────────────────
+# Color name or hex code e.g. WHITE, BLACK, #1a1a2e
+background_color = BLACK
+
+# Background opacity (0 = transparent, 1 = solid)
+# Use with format=webm for transparent background
+background_opacity = 1.0
+
+# ── Preview ───────────────────────────────
+# Auto open video after rendering (needs X11)
+preview = False
+
+# ── Performance ───────────────────────────
+# Disable caching (set True to always re-render from scratch)
+disable_caching = False
+
+# ── Text & Fonts ──────────────────────────
+# Default font for Text() objects
+# font =
+
+# ── Scene ─────────────────────────────────
+# Start rendering from this second (skip beginning)
+# start_at_animation_number = 0
+
+# Render only up to this animation number
+# end_at_animation_number =</pre>
+  </div>
+
+  <h3 class="animate-fade-in">Method B — Command Line Flags (Quick Override)</h3>
+  <p>Add flags directly to your render command without editing any file. These override the config file.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — all available flags
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre id="flags-block"><span class="comment"># Quality presets</span>
+<span class="cmd">manim -ql file.py Scene</span>   <span class="comment"># 480p  15fps — fastest</span>
+<span class="cmd">manim -qm file.py Scene</span>   <span class="comment"># 720p  30fps</span>
+<span class="cmd">manim -qh file.py Scene</span>   <span class="comment"># 1080p 60fps</span>
+<span class="cmd">manim -qp file.py Scene</span>   <span class="comment"># 1440p 60fps — production</span>
+<span class="cmd">manim -qk file.py Scene</span>   <span class="comment"># 2160p 60fps — 4K (very slow)</span>
+
+<span class="comment"># Custom resolution & FPS</span>
+<span class="cmd">manim -ql --resolution 1280,720 --frame_rate 60 file.py Scene</span>
+
+<span class="comment"># Background color</span>
+<span class="cmd">manim -ql --background_color WHITE file.py Scene</span>
+<span class="cmd">manim -ql --background_color "#1a1a2e" file.py Scene</span>
+
+<span class="comment"># Save as GIF instead of MP4</span>
+<span class="cmd">manim -ql --format gif file.py Scene</span>
+
+<span class="comment"># Save last frame as PNG image</span>
+<span class="cmd">manim -ql --save_last_frame file.py Scene</span>
+
+<span class="comment"># Transparent background (saves as webm)</span>
+<span class="cmd">manim -ql --format webm --background_opacity 0 file.py Scene</span>
+
+<span class="comment"># Skip to a specific animation number</span>
+<span class="cmd">manim -ql -n 3 file.py Scene</span>
+
+<span class="comment"># Render only animations 3 to 7</span>
+<span class="cmd">manim -ql -n 3,7 file.py Scene</span>
+
+<span class="comment"># Disable cache (force full re-render)</span>
+<span class="cmd">manim -ql --disable_caching file.py Scene</span>
+
+<span class="comment"># Preview after render (needs Termux:X11)</span>
+<span class="cmd">manim -ql -p file.py Scene</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">All Settings at a Glance</h3>
+  <table class="error-table glass reveal-soft">
+    <thead>
+      <tr><th>Setting</th><th>What it does</th><th>Default</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>quality</code></td><td>Resolution + FPS preset</td><td>low_quality</td></tr>
+      <tr><td><code>frame_rate</code></td><td>Frames per second of the video</td><td>15 (low), 30 (med), 60 (high)</td></tr>
+      <tr><td><code>pixel_width / pixel_height</code></td><td>Custom resolution in pixels</td><td>854×480 (low)</td></tr>
+      <tr><td><code>background_color</code></td><td>Background color (name or hex)</td><td>BLACK</td></tr>
+      <tr><td><code>background_opacity</code></td><td>0 = transparent, 1 = solid</td><td>1.0</td></tr>
+      <tr><td><code>format</code></td><td>Output format: mp4, gif, webm, png</td><td>mp4</td></tr>
+      <tr><td><code>save_last_frame</code></td><td>Save final frame as a PNG image</td><td>False</td></tr>
+      <tr><td><code>save_pngs</code></td><td>Save every frame as PNG</td><td>False</td></tr>
+      <tr><td><code>media_dir</code></td><td>Folder where output is saved</td><td>./media</td></tr>
+      <tr><td><code>preview</code></td><td>Auto open after render (needs X11)</td><td>False</td></tr>
+      <tr><td><code>disable_caching</code></td><td>Always re-render from scratch</td><td>False</td></tr>
+      <tr><td><code>-n 3,7</code></td><td>Render only animations 3 to 7</td><td>All</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">💡</span>
+    <div>For your tablet, the best balance is <strong style="color:var(--text)">720p at 30fps</strong> — good quality without being too slow to render. Use <code>manim -qm file.py Scene</code> or set <code>quality = medium_quality</code> in your config.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="x11">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">04</span> Live Preview with Termux:X11</h2>
+  <p>Instead of rendering a video file and opening it in VLC, Termux:X11 lets you watch the animation play live on your screen as Manim renders it — just like a real desktop computer.</p>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Make sure you already have the <strong style="color:var(--text)">Termux:X11 APK</strong> installed on your tablet before starting. Download <code>app-arm64-v8a-debug.apk</code> from github.com/termux/termux-x11/releases</div>
+  </div>
+
+  <h3 class="animate-fade-in">Step 1 — Install X11 Package Inside Termux</h3>
+  <p>Run this in <strong style="color:var(--text)">Termux</strong> (not inside Ubuntu):</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">pkg install x11-repo -y</span>
+<span class="cmd">pkg install termux-x11-nightly -y</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 2 — Open the Termux:X11 App</h3>
+  <ul class="step-list">
+    <li>Open the <strong style="color:var(--text)">Termux:X11</strong> app on your tablet. You will see a black screen — this is normal. It is waiting for a connection.</li>
+    <li>Leave it open in the background and go back to Termux.</li>
+  </ul>
+
+  <h3 class="animate-fade-in">Step 3 — Login to Ubuntu with Shared Temp</h3>
+  <p>This time you must login to Ubuntu with an extra flag <code>--shared-tmp</code> — without this, X11 will not connect.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro login ubuntu --shared-tmp</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 4 — Install XFCE Desktop (First Time Only)</h3>
+  <p>XFCE is a lightweight desktop environment. You only need to install this once.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt install -y xfce4 xfce4-terminal dbus-x11</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 5 — Start the X11 Session</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">termux-x11 :1 -xstartup "dbus-launch --exit-with-session xfce4-session" &</span></pre>
+  </div>
+  <p>Now switch to the <strong style="color:var(--text)">Termux:X11 app</strong> — you should see the XFCE desktop appear. Switch back to Termux to continue.</p>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>If you see a <strong style="color:var(--text)">black screen with only a cursor</strong>, go back to Ubuntu and add the <code>-legacy-drawing</code> flag:<br>
+    <code>termux-x11 :1 -legacy-drawing -xstartup "dbus-launch --exit-with-session xfce4-session" &</code></div>
+  </div>
+
+  <h3 class="animate-fade-in">Step 6 — Set Display & Activate Manim</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">export DISPLAY=:1</span>
+<span class="cmd">cd ~/manim-projects</span>
+<span class="cmd">source manim-env/bin/activate</span></pre>
+  </div>
+
+  <h3 class="animate-fade-in">Step 7 — Render with Live Preview</h3>
+  <p>Add the <code>-p</code> flag to your render command. This opens the animation live in Termux:X11 as soon as it finishes rendering.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># -p means preview — opens video automatically in X11</span>
+<span class="cmd">manim -ql -p my_animation.py MyScene</span></pre>
+  </div>
+  <p>Switch to the <strong style="color:var(--text)">Termux:X11 app</strong> — your animation will play automatically.</p>
+
+  <h3 class="animate-fade-in">Step 8 — Stopping X11</h3>
+  <p>When done, exit the X11 session cleanly:</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span>
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">pkill -f termux-x11</span></pre>
+  </div>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">🖥️</span>
+    <div>
+      <strong style="color:var(--text)">X11 session summary every time:</strong><br>
+      1. Open <strong style="color:var(--text)">Termux:X11 app</strong> first<br>
+      2. In Termux: <code>proot-distro login ubuntu --shared-tmp</code><br>
+      3. <code>termux-x11 :1 -xstartup "dbus-launch --exit-with-session xfce4-session" &</code><br>
+      4. <code>export DISPLAY=:1</code><br>
+      5. <code>cd ~/manim-projects && source manim-env/bin/activate</code><br>
+      6. <code>manim -ql -p filename.py ClassName</code><br>
+      7. Switch to Termux:X11 app to watch
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section class="section" id="writing">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">06</span> Writing a Manim Code</h2>
+  <p>This is your reference sheet for actually writing scenes — the boilerplate every file needs, plus every common building block: shapes, fill, color, transforms, text, positioning, and 3D. Everything below is click-and-search: scan the sub-headings, jump to whatever you need.</p>
+
+  <h3 class="animate-fade-in">The Boilerplate (Every Scene Needs This)</h3>
+  <p>This is the skeleton of every Manim file you will ever write. Practice typing this out from memory until it's automatic.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — the skeleton
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+
+<span class="kw">class</span> <span class="cmd">MyScene</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        <span class="comment"># everything happens in here</span>
+        <span class="comment"># 1. create objects</span>
+        <span class="comment"># 2. self.play(...) to animate them</span>
+        <span class="comment"># 3. self.wait(...) to pause</span>
+        pass</pre>
+  </div>
+
+  <ul class="step-list">
+    <li><code>from manim import *</code> — always the first line. Gives you every shape, color, and animation.</li>
+    <li><code>class MyScene(Scene)</code> — every scene is a class. The name (<code>MyScene</code>) is what you type on the command line to render it.</li>
+    <li><code>def construct(self):</code> — the only method you write. Manim calls this automatically — everything you want to happen goes inside it.</li>
+    <li><code>self.play(...)</code> — runs an animation. Nothing appears on screen until it's wrapped in <code>self.play()</code>.</li>
+    <li><code>self.wait(n)</code> — pauses for <code>n</code> seconds. Without this at the end, the video cuts off instantly.</li>
+  </ul>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Render this with <code>manim -ql filename.py MyScene</code> — the class name at the end must match exactly (case-sensitive).</div>
+  </div>
+
+  <h3 class="animate-fade-in">Minimal Working Example</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — smallest real scene
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+
+<span class="kw">class</span> <span class="cmd">MyScene</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        circle = Circle()
+        self.play(Create(circle))
+        self.wait(1)</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Basic Shapes — How to Add Them</h3>
+  <p>Every shape is one line to create, then wrap it in <code>self.play(Create(...))</code> to animate it onto the screen.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — circle, square, triangle, and more
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Circle</span>
+circle = Circle(radius=<span class="num-lit">2</span>, color=BLUE)
+self.play(Create(circle))
+
+<span class="comment"># Square</span>
+square = Square(side_length=<span class="num-lit">2</span>, color=GREEN)
+self.play(Create(square))
+
+<span class="comment"># Triangle</span>
+triangle = Triangle(color=RED)
+self.play(Create(triangle))
+
+<span class="comment"># Rectangle</span>
+rect = Rectangle(width=<span class="num-lit">4</span>, height=<span class="num-lit">2</span>, color=YELLOW)
+self.play(Create(rect))
+
+<span class="comment"># Line</span>
+line = Line(start=LEFT*<span class="num-lit">2</span>, end=RIGHT*<span class="num-lit">2</span>, color=WHITE)
+self.play(Create(line))
+
+<span class="comment"># Dot (a point)</span>
+dot = Dot(point=ORIGIN, color=PINK)
+self.play(Create(dot))
+
+<span class="comment"># Arrow</span>
+arrow = Arrow(start=LEFT, end=RIGHT, color=ORANGE)
+self.play(Create(arrow))
+
+<span class="comment"># Polygon (any number of custom points)</span>
+polygon = Polygon(
+    [-<span class="num-lit">1</span>,-<span class="num-lit">1</span>,<span class="num-lit">0</span>], [<span class="num-lit">1</span>,-<span class="num-lit">1</span>,<span class="num-lit">0</span>], [<span class="num-lit">1</span>,<span class="num-lit">1</span>,<span class="num-lit">0</span>], [-<span class="num-lit">1</span>,<span class="num-lit">1</span>,<span class="num-lit">0</span>],
+    color=PURPLE
+)
+self.play(Create(polygon))
+
+<span class="comment"># Ellipse</span>
+ellipse = Ellipse(width=<span class="num-lit">4</span>, height=<span class="num-lit">2</span>, color=TEAL)
+self.play(Create(ellipse))
+
+<span class="comment"># Star</span>
+star = Star(n=<span class="num-lit">5</span>, outer_radius=<span class="num-lit">2</span>, color=GOLD)
+self.play(Create(star))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Fill Color — Filling a Shape with Color</h3>
+  <p>Creating a shape only draws its outline. To fill the inside, set <code>fill_color</code> and <code>fill_opacity</code> (0 = invisible, 1 = fully solid).</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — fill a shape
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Method 1 — set when creating</span>
+circle = Circle(
+    color=BLUE,
+    fill_color=BLUE,
+    fill_opacity=<span class="num-lit">0.8</span>
+)
+self.play(Create(circle))
+
+<span class="comment"># Method 2 — .set_fill() after creating</span>
+square = Square(color=GREEN)
+square.set_fill(GREEN, opacity=<span class="num-lit">0.6</span>)
+self.play(Create(square))
+
+<span class="comment"># Animate the fill appearing (fade in the color)</span>
+triangle = Triangle(color=RED)
+self.play(Create(triangle))
+self.play(triangle.animate.set_fill(RED, opacity=<span class="num-lit">1</span>))
+
+<span class="comment"># Different outline color vs fill color</span>
+star = Star(color=WHITE, fill_color=YELLOW, fill_opacity=<span class="num-lit">1</span>)
+self.play(Create(star))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Colors — Solid & Mixed</h3>
+  <p>Manim ships built-in color constants, but you can also mix your own using hex codes or by blending two colors together.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — built-in colors
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Built-in named colors</span>
+RED, BLUE, GREEN, YELLOW, ORANGE, PURPLE, PINK,
+WHITE, BLACK, GRAY, GOLD, TEAL, MAROON
+
+<span class="comment"># Shades — add _A through _E (A=lightest, E=darkest)</span>
+BLUE_A   <span class="comment"># very light blue</span>
+BLUE_E   <span class="comment"># very dark blue</span>
+RED_C    <span class="comment"># medium red (same as RED)</span></pre>
+  </div>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — custom hex & mixed colors
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Custom hex color — use any color you want</span>
+custom = Circle(color=<span class="str">"#ff6b9d"</span>, fill_color=<span class="str">"#ff6b9d"</span>, fill_opacity=<span class="num-lit">1</span>)
+
+<span class="comment"># Mix two colors together (average of the two)</span>
+mixed_color = average_color(RED, BLUE)     <span class="comment"># purple-ish</span>
+shape = Square(color=mixed_color, fill_color=mixed_color, fill_opacity=<span class="num-lit">1</span>)
+
+<span class="comment"># Gradient fill — blends smoothly between two colors</span>
+gradient_shape = Circle(
+    fill_opacity=<span class="num-lit">1</span>,
+    color=WHITE
+)
+gradient_shape.set_color(color=[BLUE, GREEN])   <span class="comment"># gradient across the shape</span>
+
+<span class="comment"># Interpolate between colors by a fraction (0 to 1)</span>
+half_mix = interpolate_color(RED, YELLOW, <span class="num-lit">0.5</span>)  <span class="comment"># halfway between red & yellow</span></pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Color Library — Every Built-in Color Name</h3>
+  <p>The full list of built-in color constants, grouped by family. Every color below has 5 shade levels — add <code>_A</code> (lightest) through <code>_E</code> (darkest) to the name, e.g. <code>PURPLE_A</code>, <code>PURPLE_E</code>. Using the plain name (no suffix) gives you the default middle shade (same as <code>_C</code>).</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — reds, pinks, maroons
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Red family</span>
+RED_A, RED_B, RED_C, RED_D, RED_E, RED   <span class="comment"># RED = RED_C</span>
+
+<span class="comment"># Maroon family (deep red)</span>
+MAROON_A, MAROON_B, MAROON_C, MAROON_D, MAROON_E, MAROON
+
+<span class="comment"># Pink family</span>
+PINK, LIGHT_PINK</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — oranges, yellows, golds
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Orange family</span>
+ORANGE, LIGHT_BROWN, DARK_BROWN
+
+<span class="comment"># Yellow family</span>
+YELLOW_A, YELLOW_B, YELLOW_C, YELLOW_D, YELLOW_E, YELLOW
+
+<span class="comment"># Gold family</span>
+GOLD_A, GOLD_B, GOLD_C, GOLD_D, GOLD_E, GOLD</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — greens &amp; teals
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Green family</span>
+GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E, GREEN
+
+<span class="comment"># Teal family</span>
+TEAL_A, TEAL_B, TEAL_C, TEAL_D, TEAL_E, TEAL</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — blues &amp; purples
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Blue family</span>
+BLUE_A, BLUE_B, BLUE_C, BLUE_D, BLUE_E, BLUE
+
+<span class="comment"># Light blue / sky blue</span>
+LIGHT_BLUE
+
+<span class="comment"># Purple family</span>
+PURPLE_A, PURPLE_B, PURPLE_C, PURPLE_D, PURPLE_E, PURPLE</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — grays, black, white
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Gray family (also spelled GREY_*, both work)</span>
+GRAY_A, GRAY_B, GRAY_C, GRAY_D, GRAY_E, GRAY
+
+<span class="comment"># Pure black &amp; white</span>
+WHITE, BLACK
+
+<span class="comment"># Transparent (useful for hiding fill while keeping outline)</span>
+Circle(fill_color=BLUE, fill_opacity=<span class="num-lit">0</span>)   <span class="comment"># fill_opacity=0 = invisible fill</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — how to use any of these
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># As the outline/stroke color</span>
+circle = Circle(color=BLUE_D)
+
+<span class="comment"># As the fill color (needs fill_opacity too)</span>
+square = Square(fill_color=PURPLE_A, fill_opacity=<span class="num-lit">1</span>)
+
+<span class="comment"># For text</span>
+text = Text(<span class="str">"Hello"</span>, color=TEAL_E)
+
+<span class="comment"># For a MathTex formula</span>
+formula = MathTex(<span class="str">r"E = mc^2"</span>, color=GOLD_D)
+
+<span class="comment"># Changing color later with animation</span>
+self.play(circle.animate.set_color(MAROON_C))</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Full family list at a glance: <code>RED, MAROON, PINK, ORANGE, YELLOW, GOLD, GREEN, TEAL, BLUE, LIGHT_BLUE, PURPLE, GRAY/GREY, WHITE, BLACK</code>. Most support <code>_A</code>–<code>_E</code> shades. You can always fall back to a custom hex string like <code>"#ff6b9d"</code> for any color not in this list — see the custom hex block above.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Text — Writing & Coloring It</h3>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — text basics
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Plain text</span>
+text = Text(<span class="str">"Hello Manim"</span>, font_size=<span class="num-lit">48</span>, color=WHITE)
+self.play(Write(text))
+
+<span class="comment"># Math text (LaTeX) — for equations</span>
+formula = MathTex(<span class="str">r"E = mc^2"</span>, font_size=<span class="num-lit">60</span>, color=YELLOW)
+self.play(Write(formula))
+
+<span class="comment"># Colored text — whole string</span>
+colored = Text(<span class="str">"Colored Text"</span>, color=BLUE)
+
+<span class="comment"># Color only part of the text (by substring)</span>
+partial = Text(<span class="str">"Red and Blue"</span>)
+partial[<span class="num-lit">0</span>:<span class="num-lit">3</span>].set_color(RED)     <span class="comment"># colors just "Red"</span>
+partial[<span class="num-lit">8</span>:<span class="num-lit">12</span>].set_color(BLUE)   <span class="comment"># colors just "Blue"</span>
+
+<span class="comment"># Change color with animation (smooth transition)</span>
+self.play(text.animate.set_color(RED))
+
+<span class="comment"># Bold / italic (Text uses standard args)</span>
+bold_text = Text(<span class="str">"Bold"</span>, weight=BOLD)
+italic_text = Text(<span class="str">"Italic"</span>, slant=ITALIC)</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Math Symbols &amp; Formulas — Integrals, Summation, Limits, Derivatives, nCr</h3>
+  <p>All of these go inside <code>MathTex(r"...")</code> — the <code>r</code> before the quotes matters (raw string, so backslashes work). This is plain LaTeX math syntax. Write the whole formula as one string, or split it into multiple pieces inside <code>{ }</code> so you can color or animate parts separately.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — nCr, nPr, and factorials
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># nCr — combinations, "n choose r"</span>
+ncr = MathTex(<span class="str">r"^{n}C_{r} = \frac{n!}{r!(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(ncr))
+
+<span class="comment"># nCr — binomial coefficient notation (the big round-bracket style)</span>
+ncr_binom = MathTex(<span class="str">r"\binom{n}{r} = \frac{n!}{r!(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># nPr — permutations</span>
+npr = MathTex(<span class="str">r"^{n}P_{r} = \frac{n!}{(n-r)!}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Factorial</span>
+factorial = MathTex(<span class="str">r"n!"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — integration sign (indefinite &amp; definite)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Indefinite integral — plain integral sign</span>
+integral = MathTex(<span class="str">r"\int x^2 \, dx"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(integral))
+
+<span class="comment"># Definite integral — limits go in _{lower}^{upper} right after \int</span>
+definite_integral = MathTex(<span class="str">r"\int_{0}^{1} x^2 \, dx = \frac{1}{3}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(definite_integral))
+
+<span class="comment"># Double integral</span>
+double_integral = MathTex(<span class="str">r"\iint_{D} f(x,y) \, dA"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Triple integral</span>
+triple_integral = MathTex(<span class="str">r"\iiint_{V} f(x,y,z) \, dV"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Closed line/surface integral (loop through the sign)</span>
+closed_integral = MathTex(<span class="str">r"\oint_{C} \vec{F} \cdot d\vec{r}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — summation sign (with limits)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Summation — \sum, limits again go in _{lower}^{upper}</span>
+summation = MathTex(<span class="str">r"\sum_{i=1}^{n} i = \frac{n(n+1)}{2}"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(summation))
+
+<span class="comment"># Summation to infinity</span>
+infinite_sum = MathTex(<span class="str">r"\sum_{n=0}^{\infty} \frac{1}{n!} = e"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Product sign (big pi) — same limit syntax as summation</span>
+product = MathTex(<span class="str">r"\prod_{i=1}^{n} i = n!"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — limit sign
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Limit — \lim with the approach value under it via \to</span>
+limit = MathTex(<span class="str">r"\lim_{x \to 0} \frac{\sin x}{x} = 1"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(limit))
+
+<span class="comment"># Limit going to infinity</span>
+limit_inf = MathTex(<span class="str">r"\lim_{x \to \infty} \frac{1}{x} = 0"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># One-sided limits — add ^+ or ^- to the approach value</span>
+limit_right = MathTex(<span class="str">r"\lim_{x \to 0^{+}} f(x)"</span>, font_size=<span class="num-lit">60</span>)
+limit_left = MathTex(<span class="str">r"\lim_{x \to 0^{-}} f(x)"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — derivatives (regular, partial, higher order)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Derivative — Leibniz notation (d/dx form)</span>
+derivative = MathTex(<span class="str">r"\frac{d}{dx} x^2 = 2x"</span>, font_size=<span class="num-lit">60</span>)
+self.play(Write(derivative))
+
+<span class="comment"># Derivative of a function y — dy/dx</span>
+dy_dx = MathTex(<span class="str">r"\frac{dy}{dx}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Prime notation — f'(x), f''(x)</span>
+prime = MathTex(<span class="str">r"f'(x) = 2x \quad f''(x) = 2"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Second derivative — Leibniz form</span>
+second_derivative = MathTex(<span class="str">r"\frac{d^2y}{dx^2}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Partial derivative — use \partial instead of d</span>
+partial_derivative = MathTex(<span class="str">r"\frac{\partial f}{\partial x}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — other common symbols &amp; formulas
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Square root / nth root</span>
+sqrt = MathTex(<span class="str">r"\sqrt{x}"</span>, font_size=<span class="num-lit">60</span>)
+nth_root = MathTex(<span class="str">r"\sqrt[n]{x}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Fractions</span>
+fraction = MathTex(<span class="str">r"\frac{a}{b}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Greek letters — just backslash + name</span>
+greek = MathTex(<span class="str">r"\alpha \beta \gamma \theta \pi \sigma \Delta \Sigma \Omega"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Infinity, plus-minus, not-equal, approx</span>
+symbols = MathTex(<span class="str">r"\infty \quad \pm \quad \neq \quad \approx"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Inequalities</span>
+inequalities = MathTex(<span class="str">r"\leq \quad \geq \quad \ll \quad \gg"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Vectors — arrow on top</span>
+vector = MathTex(<span class="str">r"\vec{F} = m\vec{a}"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Set membership / subset</span>
+sets = MathTex(<span class="str">r"x \in \mathbb{R} \quad A \subset B"</span>, font_size=<span class="num-lit">60</span>)
+
+<span class="comment"># Matrix (2x2 example)</span>
+matrix = MathTex(<span class="str">r"\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}"</span>, font_size=<span class="num-lit">60</span>)</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Pattern for limits everywhere in LaTeX: the symbol comes first (<code>\int</code>, <code>\sum</code>, <code>\prod</code>, <code>\lim</code>), then <code>_{ }</code> for the lower/starting value, then <code>^{ }</code> for the upper value (integrals and sums use both; <code>\lim</code> only uses <code>_{ }</code> with <code>\to</code> inside it). <code>\,</code> just adds a small space (used before <code>dx</code>). Always wrap the whole thing in a raw string: <code>MathTex(r"...")</code>.</div>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>These formulas need a full LaTeX install to render (see Manual Installation above, <code>texlive-latex-extra</code>). If a symbol doesn't show up or you get a "latex not found" / compile error, check the Troubleshooting table further up this guide.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Transform — Morphing Shapes & Text</h3>
+  <p><code>Transform</code> smoothly morphs one object into another. <code>ReplacementTransform</code> does the same but fully replaces the original object (better when the two are very different shapes).</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — transforming shapes
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Transform a circle into a square</span>
+circle = Circle(color=BLUE)
+square = Square(color=GREEN)
+self.play(Create(circle))
+self.play(Transform(circle, square))
+self.wait(1)
+
+<span class="comment"># ReplacementTransform — cleaner for very different shapes</span>
+triangle = Triangle(color=RED)
+star = Star(color=YELLOW)
+self.play(Create(triangle))
+self.play(ReplacementTransform(triangle, star))
+
+<span class="comment"># Transform text into other text</span>
+text1 = Text(<span class="str">"Before"</span>)
+text2 = Text(<span class="str">"After"</span>)
+self.play(Write(text1))
+self.play(Transform(text1, text2))
+
+<span class="comment"># Transform a formula into another formula (great for step-by-step math)</span>
+eq1 = MathTex(<span class="str">r"x + 2 = 5"</span>)
+eq2 = MathTex(<span class="str">r"x = 3"</span>)
+self.play(Write(eq1))
+self.play(TransformMatchingTex(eq1, eq2))  <span class="comment"># matches similar symbols</span></pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Positioning — Moving to Edges & Corners</h3>
+  <p>Every object can be moved with <code>.to_edge()</code>, <code>.to_corner()</code>, <code>.shift()</code>, or <code>.move_to()</code>.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — edges & corners
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># To an edge</span>
+shape.to_edge(UP)               <span class="comment"># top center</span>
+shape.to_edge(DOWN)             <span class="comment"># bottom center</span>
+shape.to_edge(LEFT)             <span class="comment"># middle left</span>
+shape.to_edge(RIGHT)            <span class="comment"># middle right</span>
+
+<span class="comment"># To a corner</span>
+shape.to_corner(UP + LEFT)      <span class="comment"># top-left</span>
+shape.to_corner(UP + RIGHT)     <span class="comment"># top-right</span>
+shape.to_corner(DOWN + LEFT)    <span class="comment"># bottom-left</span>
+shape.to_corner(DOWN + RIGHT)   <span class="comment"># bottom-right</span>
+
+<span class="comment"># Shift relative to current position</span>
+shape.shift(UP * <span class="num-lit">2</span>)          <span class="comment"># move up by 2 units</span>
+shape.shift(DOWN * <span class="num-lit">1</span>)         <span class="comment"># move down by 1 unit</span>
+shape.shift(LEFT * <span class="num-lit">3</span>)         <span class="comment"># move left by 3 units</span>
+shape.shift(RIGHT + UP)      <span class="comment"># move diagonally (right + up)</span>
+
+<span class="comment"># Move to an exact coordinate</span>
+shape.move_to(ORIGIN)        <span class="comment"># dead center</span>
+shape.move_to([<span class="num-lit">2</span>, <span class="num-lit">1</span>, <span class="num-lit">0</span>])     <span class="comment"># x=2, y=1</span>
+
+<span class="comment"># Position relative to another object</span>
+label.next_to(circle, UP)          <span class="comment"># above the circle</span>
+label.next_to(circle, DOWN, buff=<span class="num-lit">0.5</span>)  <span class="comment"># below, with gap</span>
+label.next_to(circle, RIGHT)       <span class="comment"># to the right of it</span>
+
+<span class="comment"># Animate the move (instead of instant jump)</span>
+self.play(shape.animate.to_edge(UP))
+self.play(shape.animate.shift(RIGHT * <span class="num-lit">2</span>))</pre>
+  </div>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">🧭</span>
+    <div><strong style="color:var(--text)">Direction cheat sheet:</strong> <code>UP</code>, <code>DOWN</code>, <code>LEFT</code>, <code>RIGHT</code> are built in. Combine them for diagonals: <code>UP+LEFT</code> = top-left, <code>DOWN+RIGHT</code> = bottom-right, etc.</div>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — worked example: move a title from center to top
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Create text in the center (default position) and show it</span>
+text1 = Text(<span class="str">"Integral"</span>)
+self.play(Create(text1))
+self.wait(<span class="num-lit">1</span>)
+
+<span class="comment"># Animate that same text sliding up to the top-center edge</span>
+self.play(text1.animate.to_edge(UP))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">.shift() — Full Guide (What It Is, When to Use It)</h3>
+  <p><code>.shift()</code> moves an object <strong>relative to where it already is</strong> — it adds an offset to the current position. This is different from <code>.move_to()</code>, which sends the object to an exact, absolute coordinate no matter where it started. Use <code>.shift()</code> whenever you're thinking "move it a bit more from here," and use <code>.move_to()</code> when you're thinking "put it exactly at this spot."</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — basic shift directions
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># The four basic directions — each is a unit vector you scale with *</span>
+shape.shift(UP)                 <span class="comment"># up by 1 unit (default)</span>
+shape.shift(UP * <span class="num-lit">2</span>)             <span class="comment"># up by 2 units</span>
+shape.shift(DOWN * <span class="num-lit">1.5</span>)         <span class="comment"># down by 1.5 units</span>
+shape.shift(LEFT * <span class="num-lit">3</span>)           <span class="comment"># left by 3 units</span>
+shape.shift(RIGHT * <span class="num-lit">0.5</span>)        <span class="comment"># right by half a unit</span>
+
+<span class="comment"># Negative numbers flip the direction (same as the opposite constant)</span>
+shape.shift(UP * -<span class="num-lit">2</span>)            <span class="comment"># same as shift(DOWN * 2)</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — diagonal &amp; combined shifts
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Add two directions together for a diagonal move</span>
+shape.shift(RIGHT + UP)              <span class="comment"># diagonally up-right by 1 unit each</span>
+shape.shift(RIGHT * <span class="num-lit">2</span> + UP * <span class="num-lit">1</span>)      <span class="comment"># further right than up</span>
+shape.shift(LEFT * <span class="num-lit">2</span> + DOWN * <span class="num-lit">2</span>)    <span class="comment"># diagonally down-left</span>
+
+<span class="comment"># Shift using a raw [x, y, z] vector instead of UP/DOWN/etc.</span>
+shape.shift([<span class="num-lit">1.5</span>, -<span class="num-lit">0.5</span>, <span class="num-lit">0</span>])       <span class="comment"># right 1.5, down 0.5</span>
+
+<span class="comment"># Shift along the z-axis (only matters in 3D scenes)</span>
+shape.shift(OUT * <span class="num-lit">2</span>)            <span class="comment"># toward the camera</span>
+shape.shift(IN * <span class="num-lit">2</span>)             <span class="comment"># away from the camera</span>
+
+<span class="comment"># Chaining shifts — each one stacks on top of the last</span>
+shape.shift(RIGHT * <span class="num-lit">2</span>).shift(UP * <span class="num-lit">1</span>)   <span class="comment"># same result as shift(RIGHT*2 + UP*1)</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — animating a shift (not just an instant jump)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Instant jump (no animation) — happens immediately, before self.play</span>
+shape.shift(UP * <span class="num-lit">2</span>)
+
+<span class="comment"># Animated — wrap with .animate and pass to self.play</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">2</span>))
+
+<span class="comment"># Control how long the animation takes</span>
+self.play(shape.animate.shift(RIGHT * <span class="num-lit">3</span>), run_time=<span class="num-lit">2</span>)
+
+<span class="comment"># Shift several objects at once in the same animation</span>
+self.play(
+    circle.animate.shift(LEFT * <span class="num-lit">2</span>),
+    square.animate.shift(RIGHT * <span class="num-lit">2</span>)
+)
+
+<span class="comment"># Shift, then shift again — two separate animation beats</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">1</span>))
+self.wait(<span class="num-lit">0.5</span>)
+self.play(shape.animate.shift(RIGHT * <span class="num-lit">1</span>))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — common real uses of shift
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Nudge a label off of the shape it's labeling</span>
+label = Text(<span class="str">"radius"</span>).shift(UP * <span class="num-lit">0.5</span>)
+
+<span class="comment"># Slide an object off screen (to make room / clear the scene)</span>
+self.play(shape.animate.shift(LEFT * <span class="num-lit">8</span>))   <span class="comment"># moves off the left edge</span>
+
+<span class="comment"># Make a copy and shift only the copy (keeps the original in place)</span>
+shape_copy = shape.copy().shift(RIGHT * <span class="num-lit">3</span>)
+self.play(Create(shape_copy))
+
+<span class="comment"># Shift a whole group of objects together</span>
+group = VGroup(circle, square, triangle)
+self.play(group.animate.shift(DOWN * <span class="num-lit">1</span>))
+
+<span class="comment"># Small correction after positioning (fine-tune placement)</span>
+label.next_to(circle, UP)
+label.shift(RIGHT * <span class="num-lit">0.2</span>)   <span class="comment"># nudge it slightly right</span></pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div><strong style="color:var(--text)">shift() vs move_to() vs to_edge():</strong> <code>.shift(v)</code> = "move <em>by</em> this much from where I am now" (relative). <code>.move_to(point)</code> = "go <em>to</em> this exact coordinate" (absolute — ignores current position). <code>.to_edge(direction)</code> / <code>.to_corner(direction)</code> = "snap to this edge/corner of the screen" (also absolute). If you call <code>.shift()</code> twice, the offsets add up; if you call <code>.move_to()</code> twice, only the last call matters.</div>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>1 unit in Manim is not 1 pixel — by default the visible frame is about 14.2 units wide and 8 units tall. So <code>shift(RIGHT * 8)</code> is roughly enough to push something off the right edge of a normal frame.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Matrices — As a Real Object on Screen</h3>
+  <p>Use <code>Matrix()</code> when you want a matrix as its own object you can move, transform, or animate entry-by-entry (not just static LaTeX text). It takes a plain Python list of lists.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — Matrix object
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Basic matrix — pass a list of rows</span>
+matrix = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">2</span>], [<span class="num-lit">3</span>, <span class="num-lit">4</span>]])
+self.play(Create(matrix))
+
+<span class="comment"># Matrix with brackets style (round, square, curly)</span>
+round_matrix = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">0</span>], [<span class="num-lit">0</span>, <span class="num-lit">1</span>]], left_bracket=<span class="str">"("</span>, right_bracket=<span class="str">")"</span>)
+
+<span class="comment"># 3x3 matrix</span>
+matrix3 = Matrix([[<span class="num-lit">1</span>, <span class="num-lit">2</span>, <span class="num-lit">3</span>], [<span class="num-lit">4</span>, <span class="num-lit">5</span>, <span class="num-lit">6</span>], [<span class="num-lit">7</span>, <span class="num-lit">8</span>, <span class="num-lit">9</span>]])
+
+<span class="comment"># Color a single entry — get_entries() returns them in reading order</span>
+matrix.get_entries()[<span class="num-lit">0</span>].set_color(YELLOW)   <span class="comment"># colors the "1"</span>
+
+<span class="comment"># Add brackets/rows highlight, or write it in with animation</span>
+self.play(Write(matrix))
+
+<span class="comment"># Matrix multiplication equation — mixing Matrix() with MathTex</span>
+eq = MathTex(<span class="str">r"\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}"</span>
+             <span class="str">r"\begin{bmatrix} x \\ y \end{bmatrix} ="</span>
+             <span class="str">r"\begin{bmatrix} ax+by \\ cx+dy \end{bmatrix}"</span>, font_size=<span class="num-lit">48</span>)
+self.play(Write(eq))</pre>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">2D Graphs — Axes, Plotting Functions, log(x)</h3>
+  <p><code>Axes()</code> creates an x-y coordinate grid you can plot any function on with <code>axes.plot(...)</code>. This is the standard way to draw a graph — including <code>log(x)</code>, trig functions, or anything else you can write as a Python <code>lambda</code>.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — axes and plotting a function
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">class</span> <span class="cmd">GraphScene</span>(Scene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        <span class="comment"># Build the axes first — set ranges to fit your function</span>
+        axes = Axes(
+            x_range=[-<span class="num-lit">1</span>, <span class="num-lit">10</span>, <span class="num-lit">1</span>],
+            y_range=[-<span class="num-lit">3</span>, <span class="num-lit">3</span>, <span class="num-lit">1</span>],
+            axis_config={<span class="str">"color"</span>: WHITE},
+            tips=<span class="kw">True</span>
+        )
+        <span class="comment"># Optional numeric labels on the axes</span>
+        labels = axes.get_axis_labels(x_label=<span class="str">"x"</span>, y_label=<span class="str">"y"</span>)
+        self.play(Create(axes), Write(labels))
+
+        <span class="comment"># Plot log(x) — use x_range on the plot to avoid log(0)</span>
+        log_graph = axes.plot(<span class="kw">lambda</span> x: np.log(x), x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=YELLOW)
+        log_label = MathTex(<span class="str">r"y = \log(x)"</span>, color=YELLOW).next_to(log_graph, UP)
+        self.play(Create(log_graph), Write(log_label))
+        self.wait(<span class="num-lit">1</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — more functions to plot (swap the lambda)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># log base 10 instead of natural log</span>
+log10_graph = axes.plot(<span class="kw">lambda</span> x: np.log10(x), x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=ORANGE)
+
+<span class="comment"># Parabola</span>
+parabola = axes.plot(<span class="kw">lambda</span> x: x**<span class="num-lit">2</span>, color=BLUE)
+
+<span class="comment"># Sine wave</span>
+sine_graph = axes.plot(<span class="kw">lambda</span> x: np.sin(x), color=GREEN)
+
+<span class="comment"># Exponential</span>
+exp_graph = axes.plot(<span class="kw">lambda</span> x: np.exp(x), x_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>], color=PURPLE)
+
+<span class="comment"># 1/x (has an asymptote — split into two plots to avoid the gap being joined)</span>
+inv_graph_pos = axes.plot(<span class="kw">lambda</span> x: <span class="num-lit">1</span>/x, x_range=[<span class="num-lit">0.1</span>, <span class="num-lit">10</span>], color=RED)
+inv_graph_neg = axes.plot(<span class="kw">lambda</span> x: <span class="num-lit">1</span>/x, x_range=[-<span class="num-lit">10</span>, -<span class="num-lit">0.1</span>], color=RED)
+
+<span class="comment"># Shade the area under a curve (e.g. for definite integrals)</span>
+area = axes.get_area(parabola, x_range=[<span class="num-lit">0</span>, <span class="num-lit">2</span>], color=BLUE, opacity=<span class="num-lit">0.4</span>)
+self.play(FadeIn(area))
+
+<span class="comment"># A dot that traces along a graph</span>
+dot = Dot(color=YELLOW).move_to(axes.i2gp(<span class="num-lit">0</span>, parabola))
+self.play(MoveAlongPath(dot, parabola), run_time=<span class="num-lit">3</span>)</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div>Always give <code>log</code>/<code>1/x</code> plots an <code>x_range</code> starting just above <code>0</code> (like <code>0.1</code>) — plugging in <code>x = 0</code> is undefined and will error or break the graph.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">3D Animations — Cubes, Spheres & Axes</h3>
+  <p>3D scenes use a different base class: <code>ThreeDScene</code> instead of <code>Scene</code>. You also set a camera angle so you're not just staring at 3D objects flat-on.</p>
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — 3D scene skeleton
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+
+<span class="kw">class</span> <span class="cmd">My3DScene</span>(ThreeDScene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        <span class="comment"># set the camera angle first</span>
+        self.set_camera_orientation(phi=<span class="num-lit">75</span> * DEGREES, theta=<span class="num-lit">30</span> * DEGREES)
+
+        axes = ThreeDAxes()
+        cube = Cube(side_length=<span class="num-lit">2</span>, fill_color=BLUE, fill_opacity=<span class="num-lit">0.7</span>)
+
+        self.play(Create(axes))
+        self.play(Create(cube))
+        self.wait(<span class="num-lit">2</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — 3D shapes
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Cube</span>
+cube = Cube(side_length=<span class="num-lit">2</span>, fill_color=BLUE, fill_opacity=<span class="num-lit">0.7</span>)
+
+<span class="comment"># Sphere</span>
+sphere = Sphere(radius=<span class="num-lit">2</span>, fill_color=RED, fill_opacity=<span class="num-lit">0.7</span>)
+
+<span class="comment"># Cylinder</span>
+cylinder = Cylinder(radius=<span class="num-lit">1</span>, height=<span class="num-lit">3</span>, fill_color=GREEN, fill_opacity=<span class="num-lit">0.7</span>)
+
+<span class="comment"># Cone</span>
+cone = Cone(base_radius=<span class="num-lit">1</span>, height=<span class="num-lit">2</span>, fill_color=YELLOW, fill_opacity=<span class="num-lit">0.7</span>)
+
+<span class="comment"># 3D Axes</span>
+axes = ThreeDAxes(
+    x_range=[-<span class="num-lit">5</span>, <span class="num-lit">5</span>, <span class="num-lit">1</span>],
+    y_range=[-<span class="num-lit">5</span>, <span class="num-lit">5</span>, <span class="num-lit">1</span>],
+    z_range=[-<span class="num-lit">5</span>, <span class="num-lit">5</span>, <span class="num-lit">1</span>]
+)
+
+<span class="comment"># 3D Surface (parametric — e.g. for graphing z = f(x,y))</span>
+surface = Surface(
+    <span class="kw">lambda</span> u, v: axes.c2p(u, v, np.sin(u) * np.cos(v)),
+    u_range=[-<span class="num-lit">3</span>, <span class="num-lit">3</span>],
+    v_range=[-<span class="num-lit">3</span>, <span class="num-lit">3</span>],
+    fill_color=BLUE,
+    fill_opacity=<span class="num-lit">0.6</span>
+)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — plotting on x-y-z axes (3D curves & surfaces from a function)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="kw">from</span> manim <span class="kw">import</span> *
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="kw">class</span> <span class="cmd">ThreeDGraphScene</span>(ThreeDScene):
+    <span class="kw">def</span> <span class="cmd">construct</span>(self):
+        self.set_camera_orientation(phi=<span class="num-lit">75</span> * DEGREES, theta=<span class="num-lit">30</span> * DEGREES)
+
+        axes = ThreeDAxes(
+            x_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>],
+            y_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>],
+            z_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>, <span class="num-lit">1</span>]
+        )
+        self.play(Create(axes))
+
+        <span class="comment"># 3D parametric curve — e.g. a helix, x(t), y(t), z(t)</span>
+        helix = ParametricFunction(
+            <span class="kw">lambda</span> t: axes.c2p(np.cos(t), np.sin(t), t * <span class="num-lit">0.3</span>),
+            t_range=[<span class="num-lit">0</span>, <span class="num-lit">4</span> * PI],
+            color=YELLOW
+        )
+        self.play(Create(helix))
+
+        <span class="comment"># 3D surface plot — z = f(x, y), e.g. a paraboloid z = x^2 + y^2</span>
+        paraboloid = Surface(
+            <span class="kw">lambda</span> u, v: axes.c2p(u, v, (u**<span class="num-lit">2</span> + v**<span class="num-lit">2</span>) / <span class="num-lit">4</span>),
+            u_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>],
+            v_range=[-<span class="num-lit">2</span>, <span class="num-lit">2</span>],
+            fill_color=BLUE,
+            fill_opacity=<span class="num-lit">0.7</span>,
+            checkerboard_colors=[BLUE_D, BLUE_E]  <span class="comment"># optional grid look</span>
+        )
+        self.play(Create(paraboloid))
+        self.wait(<span class="num-lit">2</span>)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — more 3D functions to try (swap into Surface / ParametricFunction)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Sine wave surface — z = sin(x) * cos(y)</span>
+wave_surface = Surface(
+    <span class="kw">lambda</span> u, v: axes.c2p(u, v, np.sin(u) * np.cos(v)),
+    u_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>],
+    v_range=[-<span class="num-lit">4</span>, <span class="num-lit">4</span>],
+    fill_color=TEAL,
+    fill_opacity=<span class="num-lit">0.7</span>
+)
+
+<span class="comment"># Sphere as a parametric surface (instead of the built-in Sphere())</span>
+sphere_surface = Surface(
+    <span class="kw">lambda</span> u, v: axes.c2p(
+        <span class="num-lit">2</span> * np.cos(u) * np.sin(v),
+        <span class="num-lit">2</span> * np.sin(u) * np.sin(v),
+        <span class="num-lit">2</span> * np.cos(v)
+    ),
+    u_range=[<span class="num-lit">0</span>, TAU], v_range=[<span class="num-lit">0</span>, PI],
+    fill_color=RED, fill_opacity=<span class="num-lit">0.6</span>
+)
+
+<span class="comment"># 3D spiral / coil (tighter helix)</span>
+coil = ParametricFunction(
+    <span class="kw">lambda</span> t: axes.c2p(np.cos(t) * <span class="num-lit">0.5</span>, np.sin(t) * <span class="num-lit">0.5</span>, t * <span class="num-lit">0.1</span>),
+    t_range=[<span class="num-lit">0</span>, <span class="num-lit">6</span> * PI],
+    color=GREEN
+)</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — rotating camera (orbit around the object)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Slowly rotate the camera around the scene</span>
+self.begin_ambient_camera_rotation(rate=<span class="num-lit">0.2</span>)
+self.wait(<span class="num-lit">5</span>)
+self.stop_ambient_camera_rotation()
+
+<span class="comment"># Or move the camera to a new fixed angle</span>
+self.move_camera(phi=<span class="num-lit">60</span> * DEGREES, theta=<span class="num-lit">45</span> * DEGREES, run_time=<span class="num-lit">2</span>)</pre>
+  </div>
+
+  <div class="note warn glass reveal-soft">
+    <span class="note-icon">⚠️</span>
+    <div>3D scenes are heavier to render on a tablet. Always test with <code>-ql</code> first, and use <code>--renderer=opengl</code> for a real speed boost on 3D-heavy scenes.</div>
+  </div>
+
+  <hr class="divider" style="margin: 50px 0;">
+
+  <h3 class="animate-fade-in">Animation Library — Every Animation You'll Use, Grouped by Purpose</h3>
+  <p>Every animation in Manim is a wrapper you pass into <code>self.play(...)</code>. This is the full toolkit, grouped by what you're trying to do: bring something onto screen, take it off, morph one thing into another, move it, or draw attention to it.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — bringing objects ONTO screen
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Create — draws the outline/stroke of a shape (most common)</span>
+self.play(Create(circle))
+
+<span class="comment"># Write — for text and MathTex, writes it stroke by stroke like handwriting</span>
+self.play(Write(text))
+self.play(Write(formula))
+
+<span class="comment"># FadeIn — simply fades in from invisible to visible</span>
+self.play(FadeIn(shape))
+
+<span class="comment"># FadeIn from a direction — fades in while sliding from that side</span>
+self.play(FadeIn(shape, shift=UP))
+self.play(FadeIn(shape, shift=RIGHT * <span class="num-lit">2</span>))
+
+<span class="comment"># GrowFromCenter — scales up from a single point in the middle</span>
+self.play(GrowFromCenter(shape))
+
+<span class="comment"># GrowFromEdge / GrowFromPoint — grows from a specific edge or coordinate</span>
+self.play(GrowFromEdge(shape, LEFT))
+self.play(GrowFromPoint(shape, ORIGIN))
+
+<span class="comment"># GrowArrow — arrow-specific grow-in animation</span>
+self.play(GrowArrow(arrow))
+
+<span class="comment"># DrawBorderThenFill — draws the outline first, then fills it in</span>
+self.play(DrawBorderThenFill(shape))
+
+<span class="comment"># SpinInFromNothing — spins in while growing from nothing</span>
+self.play(SpinInFromNothing(shape))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — taking objects OFF screen / removing
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># FadeOut — simply fades to invisible</span>
+self.play(FadeOut(shape))
+
+<span class="comment"># FadeOut in a direction — fades while sliding that way</span>
+self.play(FadeOut(shape, shift=DOWN))
+
+<span class="comment"># Uncreate — reverse of Create, un-draws the outline</span>
+self.play(Uncreate(shape))
+
+<span class="comment"># ShrinkToCenter — shrinks down to a point and disappears</span>
+self.play(ShrinkToCenter(shape))
+
+<span class="comment"># self.remove() — instantly removes with NO animation (use outside self.play)</span>
+self.remove(shape)
+
+<span class="comment"># Clear everything on screen at once</span>
+self.play(*[FadeOut(m) for m in self.mobjects])</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — Transform &amp; ReplacementTransform (morphing A into B)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Transform — morphs shape A to look like shape B, but A stays the object in the scene</span>
+<span class="comment"># (using A again later still refers to the same mobject, now shaped like B)</span>
+circle = Circle(color=BLUE)
+square = Square(color=GREEN)
+self.play(Create(circle))
+self.play(Transform(circle, square))
+
+<span class="comment"># ReplacementTransform — morphs A into B, then B fully replaces A in the scene</span>
+<span class="comment"># (cleaner when the two shapes are very different, e.g. circle -> star)</span>
+triangle = Triangle(color=RED)
+star = Star(color=YELLOW)
+self.play(Create(triangle))
+self.play(ReplacementTransform(triangle, star))
+
+<span class="comment"># TransformMatchingTex — morphs one formula into another, matching identical symbols</span>
+<span class="comment"># so shared parts glide into place instead of the whole thing dissolving</span>
+eq1 = MathTex(<span class="str">r"x + 2 = 5"</span>)
+eq2 = MathTex(<span class="str">r"x = 3"</span>)
+self.play(Write(eq1))
+self.play(TransformMatchingTex(eq1, eq2))
+
+<span class="comment"># TransformMatchingShapes — same idea but for general shapes/VGroups, not just Tex</span>
+self.play(TransformMatchingShapes(triangle, star))
+
+<span class="comment"># FadeTransform — crossfades between the two objects (fade out A while fading in B)</span>
+self.play(FadeTransform(circle, square))
+
+<span class="comment"># CounterclockwiseTransform / ClockwiseTransform — like Transform but forces</span>
+<span class="comment"># the morph to visibly rotate in that direction as it happens</span>
+self.play(ClockwiseTransform(circle, square))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — movement &amp; positioning animations
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># .animate — the general-purpose way to animate ANY property change</span>
+self.play(shape.animate.shift(UP * <span class="num-lit">2</span>))
+self.play(shape.animate.move_to(ORIGIN))
+self.play(shape.animate.scale(<span class="num-lit">2</span>))          <span class="comment"># scale up 2x</span>
+self.play(shape.animate.scale(<span class="num-lit">0.5</span>))        <span class="comment"># scale down to half</span>
+self.play(shape.animate.rotate(PI / <span class="num-lit">4</span>))    <span class="comment"># rotate 45°</span>
+self.play(shape.animate.set_color(RED))
+self.play(shape.animate.to_edge(UP))
+
+<span class="comment"># MoveToTarget — set a target state first, then animate toward it</span>
+shape.generate_target()
+shape.target.shift(RIGHT * <span class="num-lit">3</span>)
+shape.target.set_color(YELLOW)
+self.play(MoveToTarget(shape))
+
+<span class="comment"># MoveAlongPath — animate an object sliding along a curve/graph</span>
+self.play(MoveAlongPath(dot, path))
+
+<span class="comment"># Rotate — dedicated rotate animation (alternative to .animate.rotate)</span>
+self.play(Rotate(shape, angle=PI, about_point=ORIGIN))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — emphasis &amp; attention (highlighting without changing the object)
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Indicate — briefly grows and changes color, then returns to normal</span>
+self.play(Indicate(shape))
+
+<span class="comment"># Circumscribe — draws a temporary highlight box/circle around it</span>
+self.play(Circumscribe(shape))
+self.play(Circumscribe(shape, Circle))   <span class="comment"># circle instead of the default rectangle</span>
+
+<span class="comment"># Flash — a quick burst of lines radiating from a point</span>
+self.play(Flash(dot))
+
+<span class="comment"># Wiggle — a small shake/wiggle to draw the eye</span>
+self.play(Wiggle(shape))
+
+<span class="comment"># FocusOn — dims everything else, spotlighting this object</span>
+self.play(FocusOn(shape))
+
+<span class="comment"># ApplyWave — a ripple/wave distortion passes through the object</span>
+self.play(ApplyWave(shape))</pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Python</span> — sequencing: together, one-after-another, staggered
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="comment"># Play multiple animations at the same time (simultaneously)</span>
+self.play(Create(circle), Write(text))
+
+<span class="comment"># Play animations one after another — just call self.play() again</span>
+self.play(Create(circle))
+self.play(Write(text), run_time=<span class="num-lit">1.5</span>)
+
+<span class="comment"># AnimationGroup — bundles several animations, each with its own delay offset</span>
+self.play(AnimationGroup(
+    Create(circle),
+    Write(text),
+    lag_ratio=<span class="num-lit">0.5</span>   <span class="comment"># text starts halfway through the circle's animation</span>
+))
+
+<span class="comment"># LaggedStart — plays a list of animations with a staggered start (nice for lists/groups)</span>
+self.play(LaggedStart(
+    FadeIn(item1), FadeIn(item2), FadeIn(item3),
+    lag_ratio=<span class="num-lit">0.3</span>
+))
+
+<span class="comment"># Succession — plays animations strictly one after another in a single self.play call</span>
+self.play(Succession(Create(circle), Write(text)))</pre>
+  </div>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">ℹ️</span>
+    <div><strong style="color:var(--text)">Which "transform" do I use?</strong> Plain <code>Transform(A, B)</code> when you'll keep referring to <code>A</code> afterward (it now looks like B). <code>ReplacementTransform(A, B)</code> when <code>B</code> is the object you'll use going forward and the shapes are very different. <code>TransformMatchingTex</code> for step-by-step equation edits (keeps matching symbols steady). <code>FadeTransform</code> when you just want a smooth crossfade rather than a literal morph.</div>
+  </div>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">💾</span>
+    <div><strong style="color:var(--text)">Saving your render:</strong> Manim saves automatically — every <code>self.play()</code> is baked into the output video file when you run <code>manim -ql file.py SceneName</code>. There's no separate "save" step; the finished <code>.mp4</code> lands in <code>media/videos/.../</code> (see Step 5 — Find &amp; Copy the Output Video above). To render a fresh version after edits, just re-run the same render command — Manim overwrites/creates a new file each time.</div>
+  </div>
+
+  <h3 class="animate-fade-in">Quick Reference — Everything on One Page</h3>
+  <table class="error-table glass reveal-soft">
+    <thead>
+      <tr><th>What you want</th><th>Command</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Circle / Square / Triangle</td><td><code>Circle()</code> / <code>Square()</code> / <code>Triangle()</code></td></tr>
+      <tr><td>Fill a shape with color</td><td><code>fill_color=BLUE, fill_opacity=1</code></td></tr>
+      <tr><td>Custom / mixed color</td><td><code>"#ff6b9d"</code> or <code>average_color(RED, BLUE)</code></td></tr>
+      <tr><td>Color shades</td><td><code>BLUE_A</code> (lightest) through <code>BLUE_E</code> (darkest)</td></tr>
+      <tr><td>Plain text</td><td><code>Text("hello")</code></td></tr>
+      <tr><td>Math formula</td><td><code>MathTex(r"x^2")</code></td></tr>
+      <tr><td>nCr formula</td><td><code>MathTex(r"\binom{n}{r} = \frac{n!}{r!(n-r)!}")</code></td></tr>
+      <tr><td>Definite integral</td><td><code>MathTex(r"\int_{0}^{1} x^2 \, dx")</code></td></tr>
+      <tr><td>Summation with limits</td><td><code>MathTex(r"\sum_{i=1}^{n} i")</code></td></tr>
+      <tr><td>Limit</td><td><code>MathTex(r"\lim_{x \to 0} f(x)")</code></td></tr>
+      <tr><td>Derivative</td><td><code>MathTex(r"\frac{d}{dx} x^2")</code></td></tr>
+      <tr><td>Color part of text</td><td><code>text[0:3].set_color(RED)</code></td></tr>
+      <tr><td>Matrix as an object</td><td><code>Matrix([[1,2],[3,4]])</code></td></tr>
+      <tr><td>Morph shape A into B</td><td><code>Transform(A, B)</code></td></tr>
+      <tr><td>Morph A into B, B replaces A</td><td><code>ReplacementTransform(A, B)</code></td></tr>
+      <tr><td>Morph one formula into another</td><td><code>TransformMatchingTex(eq1, eq2)</code></td></tr>
+      <tr><td>Crossfade A into B</td><td><code>FadeTransform(A, B)</code></td></tr>
+      <tr><td>Fade in / out</td><td><code>FadeIn(shape)</code> / <code>FadeOut(shape)</code></td></tr>
+      <tr><td>Un-draw a shape</td><td><code>Uncreate(shape)</code></td></tr>
+      <tr><td>Remove instantly, no animation</td><td><code>self.remove(shape)</code></td></tr>
+      <tr><td>Highlight without changing it</td><td><code>Indicate(shape)</code> / <code>Circumscribe(shape)</code> / <code>Flash(dot)</code></td></tr>
+      <tr><td>Stagger a list of animations</td><td><code>LaggedStart(..., lag_ratio=0.3)</code></td></tr>
+      <tr><td>Move to edge/corner</td><td><code>.to_edge(UP)</code> / <code>.to_corner(DOWN+LEFT)</code></td></tr>
+      <tr><td>Move by offset (relative)</td><td><code>.shift(RIGHT*2)</code></td></tr>
+      <tr><td>Animate a shift</td><td><code>self.play(shape.animate.shift(UP*2))</code></td></tr>
+      <tr><td>Shift a group of objects</td><td><code>VGroup(a,b,c).animate.shift(DOWN)</code></td></tr>
+      <tr><td>Move next to another object</td><td><code>.next_to(obj, UP)</code></td></tr>
+      <tr><td>2D graph axes</td><td><code>Axes(x_range=[...], y_range=[...])</code></td></tr>
+      <tr><td>Plot a function (e.g. log x)</td><td><code>axes.plot(lambda x: np.log(x), x_range=[0.1,10])</code></td></tr>
+      <tr><td>Shade area under curve</td><td><code>axes.get_area(graph, x_range=[0,2])</code></td></tr>
+      <tr><td>3D scene base class</td><td><code>class X(ThreeDScene)</code></td></tr>
+      <tr><td>3D camera angle</td><td><code>self.set_camera_orientation(phi=75*DEGREES, theta=30*DEGREES)</code></td></tr>
+      <tr><td>Cube / Sphere / Cylinder</td><td><code>Cube()</code> / <code>Sphere()</code> / <code>Cylinder()</code></td></tr>
+      <tr><td>3D axes</td><td><code>ThreeDAxes()</code></td></tr>
+      <tr><td>3D curve on x-y-z axes</td><td><code>ParametricFunction(lambda t: axes.c2p(...), t_range=[...])</code></td></tr>
+      <tr><td>3D surface z = f(x,y)</td><td><code>Surface(lambda u,v: axes.c2p(u, v, f(u,v)), u_range, v_range)</code></td></tr>
+      <tr><td>Rotate camera around scene</td><td><code>self.begin_ambient_camera_rotation(rate=0.2)</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="note success glass reveal-soft">
+    <span class="note-icon">💡</span>
+    <div>Bookmark this section (<a href="#writing" style="color:var(--accent); font-weight:600;">#writing</a>) — it's built to be searched, not read top to bottom. Every time you forget a command, come back and Ctrl+F for it.</div>
+  </div>
+</section>
+
+<section class="section" id="vscode">
+  <h2 class="glass" style="padding: 10px 20px; width: fit-content; border-radius: 15px;"><span class="num">07</span> Install VS Code on Android (proot-distro way)</h2>
+  <p>This uses code-server's official install script instead of npm — skips all the argon2/node-gyp native build headaches entirely.</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span> — enter Ubuntu
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro login ubuntu</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — update & install curl
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">apt update</span>
+<span class="cmd">apt install -y curl</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — run the code-server install script
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">curl -fsSL https://code-server.dev/install.sh | sh</span></pre>
+  </div>
+
+  <p>If it installs standalone (not via a package manager), add it to your <code>PATH</code>:</p>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — add code-server to PATH
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">export PATH="$HOME/.local/bin:$PATH"</span>
+<span class="cmd">echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc</span></pre>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Ubuntu</span> — start it
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">code-server</span></pre>
+  </div>
+
+  <p>Then, from a browser on the same device, open <code>http://localhost:8080</code>.</p>
+
+  <div class="note info glass reveal-soft">
+    <span class="note-icon">🔑</span>
+    <div><strong style="color:var(--text)">Need the auto-generated password?</strong> code-server prints a random password to the terminal on first run. If you missed it, retrieve it any time with:</div>
+  </div>
+
+  <div class="code-block glass">
+    <div class="code-label"><span>Termux</span> — login to Ubuntu and view saved password
+      <button class="copy-btn" onclick="copyBlock(this)">Copy</button>
+    </div>
+    <pre><span class="cmd">proot-distro login ubuntu</span>
+<span class="cmd">cat ~/.config/code-server/config.yaml</span></pre>
+  </div>
+</section>
+
+
+<div style="text-align:center; margin-top: 60px; color: var(--muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">
+  Manim Community Edition · proot-distro Ubuntu · Termux · Android
+</div>
+
+<script>
+// --- scroll progress bar ---
+(function(){
+  const bar = document.getElementById('scrollProgress');
+  function update() {
+    const h = document.documentElement;
+    const scrolled = h.scrollTop;
+    const max = h.scrollHeight - h.clientHeight;
+    bar.style.width = (max > 0 ? (scrolled / max) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// --- scroll-triggered reveal animations ---
+(function(){
+  const targets = document.querySelectorAll('.animate-fade-in, .reveal-soft');
+  const groups = {}; // stagger siblings that enter together
+  targets.forEach((el) => {
+    const parent = el.closest('.section') || document.body;
+    groups[parent] = groups[parent] || [];
+    groups[parent].push(el);
+  });
+  Object.values(groups).forEach(list => {
+    list.forEach((el, i) => {
+      el.style.transitionDelay = Math.min(i, 5) * 0.06 + 's';
+    });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in-view');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+  targets.forEach(el => observer.observe(el));
+})();
+
+// Robust copy that works even without navigator.clipboard
+// (clipboard API needs HTTPS or localhost; opening this file directly
+// via file:// or over plain http:// on Android would silently fail)
+function copyTextToClipboard(text, btn) {
+  function showCopied() {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }
+  function showFailed() {
+    btn.textContent = 'Failed';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  }
+  function fallbackCopy() {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    // keep it on-screen (not display:none) so iOS/Android will actually select it
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '0';
+    textarea.style.width = '2em';
+    textarea.style.height = '2em';
+    textarea.style.padding = '0';
+    textarea.style.border = 'none';
+    textarea.style.outline = 'none';
+    textarea.style.boxShadow = 'none';
+    textarea.style.background = 'transparent';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    textarea.setSelectionRange(0, textarea.value.length);
+    let ok = false;
+    try {
+      ok = document.execCommand('copy');
+    } catch (err) {
+      ok = false;
+    }
+    document.body.removeChild(textarea);
+    if (ok) { showCopied(); } else { showFailed(); }
+  }
+
+  if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(showCopied, fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+}
+
+function copyOneliner(btn) {
+  const text = document.getElementById('oneliner-text').innerText;
+  copyTextToClipboard(text, btn);
+}
+function copyBlock(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  copyTextToClipboard(pre.innerText, btn);
+}
+</script>
+
+</div><!-- /main-content -->
+
+<script>
+// --- password gate ---
+// EDIT THIS VALUE to set your password:
+const SITE_PASSWORD = "915684";
+
+(function(){
+  const lockScreen = document.getElementById('lock-screen');
+  const lockInput = document.getElementById('lock-input');
+  const lockError = document.getElementById('lock-error');
+  const lockSubmit = document.getElementById('lock-submit');
+  const mainContent = document.getElementById('main-content');
+
+  function tryUnlock(){
+    if(lockInput.value === SITE_PASSWORD){
+      lockScreen.style.transition = 'opacity .45s cubic-bezier(.2,.8,.2,1), transform .45s cubic-bezier(.2,.8,.2,1)';
+      lockScreen.style.opacity = '0';
+      lockScreen.style.transform = 'scale(1.03)';
+      setTimeout(() => { lockScreen.style.display = 'none'; }, 450);
+      mainContent.style.display = '';
+      sessionStorage.setItem('manim-guide-unlocked', '1');
+    } else {
+      lockError.textContent = 'incorrect password';
+      const card = document.querySelector('.glass-card');
+      card.style.animation = 'none';
+      void card.offsetWidth;
+      card.style.animation = 'lock-shake .4s ease';
+      lockInput.value = '';
+      lockInput.focus();
+    }
+  }
+
+  lockSubmit.addEventListener('click', tryUnlock);
+  lockInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
+
+  if(sessionStorage.getItem('manim-guide-unlocked') === '1'){
+    lockScreen.style.display = 'none';
+    mainContent.style.display = '';
+  } else {
+    lockInput.focus();
+  }
+})();
+</script>
+
+</body>
+</html>
